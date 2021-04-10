@@ -30,13 +30,16 @@ export class ScrollsnapControls {
 
   @Prop() keys: boolean = true;
 
+  @Prop() prev: string;
+  @Prop() next: string;
+
   @State() slides: Element[] = [];
 
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex) {
     const slide = this.slides[newCurrentIndex];
     const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "center", inline: "center"};
-console.log(newCurrentIndex)
+
     // Ensure current slide has aria-current="true":
     this.slides.forEach((slide,i) => {
       if (i === newCurrentIndex) {
@@ -76,11 +79,8 @@ console.log(newCurrentIndex)
   }
 
   onKey = (e: KeyboardEvent) => {
-    console.log(this.currentIndex);
     if (e.key === 'ArrowRight') this.currentIndex++;
     else if (e.key === 'ArrowLeft') this.currentIndex--;
-    console.log(this.currentIndex);
-    e.preventDefault();
   }
 
   componentWillLoad() {
@@ -99,10 +99,12 @@ console.log(newCurrentIndex)
     }
   }
 
+  // Perhaps a future improvement could be to respond to changes in the number of slider items:
   // componentDidUpdate() {
   //   // this.init();
   // }
 
+  // Housekeeping
   disconnectedCallback() {
     const { slider, onScroll, onKey } = this;
     slider.removeEventListener('scroll', onScroll, false);
