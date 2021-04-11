@@ -9,7 +9,7 @@
   "types": "dist/custom-elements/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
-  "unpkg": "dist/scrollsnap-buttons/scrollsnap-buttons.esm.js",
+  "unpkg": "dist/scrollsnap-controls/scrollsnap-controls.esm.js",
   "files": [
     "dist/",
     "loader/"
