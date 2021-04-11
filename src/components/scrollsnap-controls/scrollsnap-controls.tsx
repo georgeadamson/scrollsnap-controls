@@ -8,6 +8,7 @@ const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.sty
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
+const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
 
 @Component({
   tag: 'scrollsnap-controls',
@@ -17,21 +18,18 @@ const DOTS_CLASSNAME = 'scrollsnap-control-dots';
 })
 export class ScrollsnapControls {
 
-  @Prop() for: string; 
+  @Prop({ attribute: 'for' }) htmlFor: string; 
+  @Prop() prev: string;
+  @Prop() next: string;
 
   @Prop() dot: string | (() => void) ='⚪️';
-
   @Prop() currentDot: string | (() => void) = '🔘';
-
   @Prop({ mutable: true, reflect: true }) currentIndex: number = 0;
 
   // Set to true to not fetch any polyfills in browsers that do not support smoothscroll natively:
-  @Prop() nopolyfill: boolean;
-
-  @Prop() keys: boolean = true;
-
-  @Prop() prev: string;
-  @Prop() next: string;
+  @Prop() polyfill: boolean;
+  @Prop() aria: boolean;
+  @Prop() keys: boolean;
 
   @State() slides: Element[] = [];
 
@@ -41,13 +39,15 @@ export class ScrollsnapControls {
     const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "center", inline: "center"};
 
     // Ensure current slide has aria-current="true":
-    this.slides.forEach((slide,i) => {
-      if (i === newCurrentIndex) {
-        slide.setAttribute('aria-current', 'true');
-      } else if (slide.hasAttribute('aria-current')) {
-        slide.removeAttribute('aria-current');
-      }
-    })
+    if (this.aria) {
+      this.slides.forEach((slide,i) => {
+        if (i === newCurrentIndex) {
+          slide.setAttribute('aria-current', 'true');
+        } else if (slide.hasAttribute('aria-current')) {
+          slide.removeAttribute('aria-current');
+        }
+      })
+    }
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
@@ -60,21 +60,47 @@ export class ScrollsnapControls {
   private slider: Element;
 
   init() {
-    const slider = this.slider = document.getElementById(this.for) || document.querySelector(this.for);
+    const { htmlFor } = this;
+
+    const slider = this.slider = document.getElementById(htmlFor) || document.querySelector(htmlFor);
     if (slider) this.slides = Array.from(slider.children);
   }
 
   // Will be handler to react to user scrolling:
   onScroll: (e: WheelEvent) => void = null;
 
-  goto = (i: number) => { this.currentIndex = i; }
-
   // Jump to corresponding slide when user clicks an indicator dot:
   onDotClick = (e: MouseEvent) => {
     const dot = (e.target as HTMLElement).closest(`.${DOT_CLASSNAME}`);
     if (dot) {
       const i = Array.from(dot.parentNode.children).indexOf(dot);
-      this.goto(i);
+      this.moveTo(i);
+    }
+  }
+
+  moveTo = (i: number) => {
+    this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
+  }
+
+  movePrev = () => {
+    this.moveTo(this.currentIndex - 1);
+  }
+
+  moveNext = () => {
+    this.moveTo(this.currentIndex + 1);
+  }
+
+  // Delegated click handler for the Prev/Next buttons:
+  onBtnClick = (e: MouseEvent) => {
+    const { prev, next } = this;
+    const target = e.target as HTMLElement;
+    const nextEl = next && closest(target, next);
+
+    if (nextEl) {
+      this.moveNext();
+    } else {
+      const prevEl = prev && closest(target, prev);
+      if (prevEl) this.movePrev();
     }
   }
 
@@ -85,30 +111,37 @@ export class ScrollsnapControls {
 
   componentWillLoad() {
     this.init();
-    this.onScroll = debounce(onScroll.bind(this), 100);
-    if (this.slider) {
-      this.slider.addEventListener('scroll', this.onScroll), false;
-      this.slider.addEventListener('keydown', this.onKey, false);
+
+    const { slider, prev, next, onKey, onBtnClick } = this;
+
+    if (slider) {
+      this.onScroll = debounce(onScroll.bind(this), 100);
+      slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
+      if (this.keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
 
-    // Late-load ponyfill for smooth scrolling if not supported: (Safari, Edge, IE11)
-    if (!isSmoothScrollSupported && !scrollIntoViewPonyfill && !this.nopolyfill) {
+    if (next || prev) {
+      document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
+    }
+
+    // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
+    if (!isSmoothScrollSupported && !scrollIntoViewPonyfill && this.polyfill) {
       // @ts-ignore
       import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
         .then(module => scrollIntoViewPonyfill = module.default);
     }
   }
 
-  // Perhaps a future improvement could be to respond to changes in the number of slider items:
-  // componentDidUpdate() {
-  //   // this.init();
-  // }
-
-  // Housekeeping
+  // Housekeeping:
   disconnectedCallback() {
-    const { slider, onScroll, onKey } = this;
-    slider.removeEventListener('scroll', onScroll, false);
-    slider.removeEventListener('keydown', onKey, false);
+    const { slider, onScroll, onKey, onBtnClick } = this;
+
+    if (slider) {
+      slider.removeEventListener('scroll', onScroll, EVENT_LISTENER_OPTIONS);
+      slider.removeEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
+    }
+
+    document.removeEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
   }
 
   render() {
@@ -139,9 +172,24 @@ function debounce(fn, ms) {
 	}
 }
 
-// Warning: This assumes all slides are the same width.
+// Handler to react when user scrolls. Must be used after onScroll.bind(this)
+// WARNING: This assumes all slides are the same width.
 // Could make the position detection smarter...?
 function onScroll() {
   const { slider, slides } = this;
   this.currentIndex = Math.round((slider.scrollLeft / slider.scrollWidth) * slides.length);
+}
+
+// Helper to call element.closest(selector) where selector might be an id, without choking on it:
+function closest(el: HTMLElement, selector: string) {
+  let result;
+  try {
+    // Try it as an id selector: (Ignore error if we've made the selector invalid)
+    result = el.closest(`#${selector}`);
+  } catch(err) {
+    // Ignore error
+  } finally {
+    // Try the selector as-is, and surface any error as nornal to help the user debug:
+    return result || el.closest(selector);
+  }
 }

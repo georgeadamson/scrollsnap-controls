@@ -1,7 +1,7 @@
 import { Config } from '@stencil/core';
 
 export const config: Config = {
-  namespace: 'scrollsnap-buttons',
+  namespace: 'scrollsnap-controls',
   globalStyle: 'src/global/demo.css',
   outputTargets: [
     {

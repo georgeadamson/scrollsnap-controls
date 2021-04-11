@@ -21,12 +21,15 @@ export namespace Components {
         "middle": string;
     }
     interface ScrollsnapControls {
+        "aria": boolean;
         "currentDot": string | (() => void);
         "currentIndex": number;
         "dot": string | (() => void);
-        "for": string;
+        "htmlFor": string;
         "keys": boolean;
-        "nopolyfill": boolean;
+        "next": string;
+        "polyfill": boolean;
+        "prev": string;
     }
 }
 declare global {
@@ -63,12 +66,15 @@ declare namespace LocalJSX {
         "middle"?: string;
     }
     interface ScrollsnapControls {
+        "aria"?: boolean;
         "currentDot"?: string | (() => void);
         "currentIndex"?: number;
         "dot"?: string | (() => void);
-        "for"?: string;
+        "htmlFor"?: string;
         "keys"?: boolean;
-        "nopolyfill"?: boolean;
+        "next"?: string;
+        "polyfill"?: boolean;
+        "prev"?: string;
     }
     interface IntrinsicElements {
         "my-component": MyComponent;

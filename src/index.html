@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
     <title>Stencil Component Starter</title>
 
-    <script type="module" src="/build/scrollsnap-buttons.esm.js"></script>
-    <script nomodule src="/build/scrollsnap-buttons.js"></script>
+    <script type="module" src="/build/scrollsnap-controls.esm.js"></script>
+    <script nomodule src="/build/scrollsnap-controls.js"></script>
 
-    <link rel="stylesheet" href="/build/scrollsnap-buttons.css">
+    <link rel="stylesheet" href="/build/scrollsnap-controls.css">
   </head>
   <body>
     <section class="app-container">
@@ -45,7 +45,10 @@
     
       <img class="app-slider-overlay" src="https://drive.google.com/uc?id=1bdpDA661rpdyB-CY9u0L9feOmfcR_hBW" />
     
-      <scrollsnap-controls for="demo-slider"></scrollsnap-controls>
+      <button id="app-slider-prev">Prev</button>
+      <button id="app-slider-next">Next</button>
+
+      <scrollsnap-controls for="demo-slider" prev="app-slider-prev" next="app-slider-next" polyfill aria></scrollsnap-controls>
 
     </section>
 
