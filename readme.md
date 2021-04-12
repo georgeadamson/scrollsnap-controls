@@ -8,19 +8,44 @@ Adds indicator buttons and handlers for Prev/Next buttons.
 
 ## Using this component
 
-There are three strategies we recommend for using web components built with Stencil.
+After adding a script you can use this compoennt just like any other html element.
 
-### Script tag
+Add a script tag similar to this:
 
-- Put a script tag similar to this `<script src='https://unpkg.com/scrollsnap-controls@0.0.1/dist/scrollsnap-controls.esm.js'></script>` in the head of your index.html
-- Then you can use the element anywhere in your template, JSX, html etc
+`<script type="module" src="https://unpkg.com/scrollsnap-controls/dist/esm/scrollsnap-controls.js"></script>`
 
-### Node Modules
-- Run `npm install scrollsnap-controls --save`
-- Put a script tag similar to this `<script src='node_modules/scrollsnap-controls/dist/scrollsnap-controls.esm.js'></script>` in the head of your index.html
-- Then you can use the element anywhere in your template, JSX, html etc
+...then you can use the element like this:
 
-### In a stencil-starter app
-- Run `npm install scrollsnap-controls --save`
-- Add an import to the npm packages `import scrollsnap-controls;`
-- Then you can use the element anywhere in your template, JSX, html etc
+`<scrollsnap-controls for="my-slider" prev="my-slider-prev" next="my-slider-next" polyfill aria></scrollsnap-controls>`
+
+
+
+| This component is an experimental POC with caveats...!
+- Only tested with _horizontal_ scrollsnap.
+- Assumes all scroll items are the same width.
+
+
+---
+
+
+# Props/Attributes for using \<scrollsnap-controls\>
+For latest see the [component readme](/src/components/scrollsnap-controls/readme.md).
+
+## Properties
+
+| Property               | Attribute       | Description                                                                                                                                        | Type                     | Default     |
+| ---------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ----------- |
+| `aria`                 | `aria`          | Optional: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary. | `boolean`                | `undefined` |
+| `currentDot`           | `current-dot`   | Optional: Specify a character or markup for the "current" page indicator dot.                                                                      | `(() => void) \| string` | `'🔘'`      |
+| `currentIndex`         | `current-index` | Readonly: Attribite to surface the index of the current page.                                                                                      | `number`                 | `0`         |
+| `dot`                  | `dot`           | Optional: Specify a character or markup for an indicator dot.                                                                                      | `(() => void) \| string` | `'⚪️'`      |
+| `htmlFor` _(required)_ | `for`           | Required: id or CSS selector for your scrollsnap element.                                                                                          | `string`                 | `undefined` |
+| `keys`                 | `keys`          | Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.                                       | `boolean`                | `undefined` |
+| `next`                 | `next`          | Optional: id or CSS selector for your "Next" button.                                                                                               | `string`                 | `undefined` |
+| `polyfill`             | `polyfill`      | Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)             | `boolean`                | `undefined` |
+| `prev`                 | `prev`          | Optional: id or CSS selector for your "Previous" button.                                                                                           | `string`                 | `undefined` |
+
+
+----------------------------------------------
+
+

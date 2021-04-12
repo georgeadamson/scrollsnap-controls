@@ -6,39 +6,46 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
-    interface MyComponent {
-        /**
-          * The first name
-         */
-        "first": string;
-        /**
-          * The last name
-         */
-        "last": string;
-        /**
-          * The middle name
-         */
-        "middle": string;
-    }
     interface ScrollsnapControls {
+        /**
+          * Optional: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
+         */
         "aria": boolean;
+        /**
+          * Optional: Specify a character or markup for the "current" page indicator dot.
+         */
         "currentDot": string | (() => void);
+        /**
+          * Readonly: Attribite to surface the index of the current page.
+         */
         "currentIndex": number;
+        /**
+          * Optional: Specify a character or markup for an indicator dot.
+         */
         "dot": string | (() => void);
+        /**
+          * Required: id or CSS selector for your scrollsnap element.
+         */
         "htmlFor": string;
+        /**
+          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+         */
         "keys": boolean;
+        /**
+          * Optional: id or CSS selector for your "Next" button.
+         */
         "next": string;
+        /**
+          * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
+         */
         "polyfill": boolean;
+        /**
+          * Optional: id or CSS selector for your "Previous" button.
+         */
         "prev": string;
     }
 }
 declare global {
-    interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {
-    }
-    var HTMLMyComponentElement: {
-        prototype: HTMLMyComponentElement;
-        new (): HTMLMyComponentElement;
-    };
     interface HTMLScrollsnapControlsElement extends Components.ScrollsnapControls, HTMLStencilElement {
     }
     var HTMLScrollsnapControlsElement: {
@@ -46,38 +53,49 @@ declare global {
         new (): HTMLScrollsnapControlsElement;
     };
     interface HTMLElementTagNameMap {
-        "my-component": HTMLMyComponentElement;
         "scrollsnap-controls": HTMLScrollsnapControlsElement;
     }
 }
 declare namespace LocalJSX {
-    interface MyComponent {
-        /**
-          * The first name
-         */
-        "first"?: string;
-        /**
-          * The last name
-         */
-        "last"?: string;
-        /**
-          * The middle name
-         */
-        "middle"?: string;
-    }
     interface ScrollsnapControls {
+        /**
+          * Optional: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
+         */
         "aria"?: boolean;
+        /**
+          * Optional: Specify a character or markup for the "current" page indicator dot.
+         */
         "currentDot"?: string | (() => void);
+        /**
+          * Readonly: Attribite to surface the index of the current page.
+         */
         "currentIndex"?: number;
+        /**
+          * Optional: Specify a character or markup for an indicator dot.
+         */
         "dot"?: string | (() => void);
-        "htmlFor"?: string;
+        /**
+          * Required: id or CSS selector for your scrollsnap element.
+         */
+        "htmlFor": string;
+        /**
+          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+         */
         "keys"?: boolean;
+        /**
+          * Optional: id or CSS selector for your "Next" button.
+         */
         "next"?: string;
+        /**
+          * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
+         */
         "polyfill"?: boolean;
+        /**
+          * Optional: id or CSS selector for your "Previous" button.
+         */
         "prev"?: string;
     }
     interface IntrinsicElements {
-        "my-component": MyComponent;
         "scrollsnap-controls": ScrollsnapControls;
     }
 }
@@ -85,7 +103,6 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
-            "my-component": LocalJSX.MyComponent & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
             "scrollsnap-controls": LocalJSX.ScrollsnapControls & JSXBase.HTMLAttributes<HTMLScrollsnapControlsElement>;
         }
     }

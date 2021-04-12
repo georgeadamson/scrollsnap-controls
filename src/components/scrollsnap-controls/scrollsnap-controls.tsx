@@ -18,18 +18,51 @@ const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
 })
 export class ScrollsnapControls {
 
-  @Prop({ attribute: 'for' }) htmlFor: string; 
+  /**
+   * Required: id or CSS selector for your scrollsnap element.
+   */
+  @Prop({ attribute: 'for' }) htmlFor!: string;
+
+  /**
+   * Optional: id or CSS selector for your "Previous" button.
+   */
   @Prop() prev: string;
+
+  /**
+   * Optional: id or CSS selector for your "Next" button.
+   */
   @Prop() next: string;
 
+  /**
+   * Optional: Specify a character or markup for an indicator dot.
+   */
   @Prop() dot: string | (() => void) ='⚪️';
+
+  /**
+   * Optional: Specify a character or markup for the "current" page indicator dot.
+   */
   @Prop() currentDot: string | (() => void) = '🔘';
+
+  /**
+   * Readonly: Attribite to surface the index of the current page.
+   */
   @Prop({ mutable: true, reflect: true }) currentIndex: number = 0;
 
-  // Set to true to not fetch any polyfills in browsers that do not support smoothscroll natively:
-  @Prop() polyfill: boolean;
-  @Prop() aria: boolean;
-  @Prop() keys: boolean;
+  /**
+   * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
+   */
+  @Prop() polyfill: boolean = false;
+
+  /**
+   * Optional: When set, the component will toggle aria attributes on the scrollsnap elements.
+   * This can be helpful to screenreaders but scenarios vary.
+   */
+  @Prop() aria: boolean = false;
+
+  /**
+   * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+   */
+  @Prop() keys: boolean = false;
 
   @State() slides: Element[] = [];
 
