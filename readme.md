@@ -5,6 +5,7 @@
 Helper for use with a CSS Scrollsnap element.
 Adds indicator buttons and handlers for Prev/Next buttons.
 
+POC: Really rushed and unloved demo: https://codepen.io/georgeadamson/pen/VwPrwyY?editors=1100
 
 ## Using this component
 
@@ -29,7 +30,7 @@ Add a script tag similar to this:
 
 
 # Props/Attributes for using \<scrollsnap-controls\>
-For latest see the [component readme](/src/components/scrollsnap-controls/readme.md).
+For latest see the [component readme](https://github.com/georgeadamson/scrollsnap-controls/blob/master/src/components/scrollsnap-controls/readme.md).
 
 ## Properties
 

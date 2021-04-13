@@ -8,7 +8,7 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface ScrollsnapControls {
         /**
-          * Optional: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
+          * Experimental: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
          */
         "aria": boolean;
         /**
@@ -16,7 +16,7 @@ export namespace Components {
          */
         "currentDot": string | (() => void);
         /**
-          * Readonly: Attribite to surface the index of the current page.
+          * Readonly: Attribute to surface the index of the current page.
          */
         "currentIndex": number;
         /**
@@ -59,7 +59,7 @@ declare global {
 declare namespace LocalJSX {
     interface ScrollsnapControls {
         /**
-          * Optional: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
+          * Experimental: When set, the component will toggle aria attributes on the scrollsnap elements. This can be helpful to screenreaders but scenarios vary.
          */
         "aria"?: boolean;
         /**
@@ -67,7 +67,7 @@ declare namespace LocalJSX {
          */
         "currentDot"?: string | (() => void);
         /**
-          * Readonly: Attribite to surface the index of the current page.
+          * Readonly: Attribute to surface the index of the current page.
          */
         "currentIndex"?: number;
         /**

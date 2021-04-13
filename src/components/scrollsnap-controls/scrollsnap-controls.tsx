@@ -36,15 +36,15 @@ export class ScrollsnapControls {
   /**
    * Optional: Specify a character or markup for an indicator dot.
    */
-  @Prop() dot: string | (() => void) ='⚪️';
+  @Prop() dot: string | (() => void) ='◯';
 
   /**
    * Optional: Specify a character or markup for the "current" page indicator dot.
    */
-  @Prop() currentDot: string | (() => void) = '🔘';
+  @Prop() currentDot: string | (() => void) = '⬤';
 
   /**
-   * Readonly: Attribite to surface the index of the current page.
+   * Readonly: Attribute to surface the index of the current page.
    */
   @Prop({ mutable: true, reflect: true }) currentIndex: number = 0;
 
@@ -54,7 +54,7 @@ export class ScrollsnapControls {
   @Prop() polyfill: boolean = false;
 
   /**
-   * Optional: When set, the component will toggle aria attributes on the scrollsnap elements.
+   * Experimental: When set, the component will toggle aria attributes on the scrollsnap elements.
    * This can be helpful to screenreaders but scenarios vary.
    */
   @Prop() aria: boolean = false;
@@ -69,7 +69,7 @@ export class ScrollsnapControls {
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex) {
     const slide = this.slides[newCurrentIndex];
-    const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "center", inline: "center"};
+    const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "nearest", inline: "nearest"};
 
     // Ensure current slide has aria-current="true":
     if (this.aria) {
