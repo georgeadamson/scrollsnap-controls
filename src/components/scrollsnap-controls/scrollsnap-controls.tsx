@@ -55,6 +55,7 @@ export class ScrollsnapControls {
 
   /**
    * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+   * (Since v0.0.7)
    */
   @Prop() disable: boolean = false;
 
