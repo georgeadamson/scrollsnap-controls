@@ -111,6 +111,7 @@ export class ScrollsnapControls {
     }
   }
 
+  // Always use the to move slides because it has the logic to keep currentIndex within limits:
   moveTo = (i: number) => {
     this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
   }
@@ -148,6 +149,7 @@ export class ScrollsnapControls {
     const { slider, prev, next, onKey, onBtnClick } = this;
 
     if (slider) {
+      // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
       this.onScroll = debounce(onScroll.bind(this), 100);
       slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
       if (this.keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
@@ -213,11 +215,11 @@ function onScroll() {
   this.currentIndex = Math.round((slider.scrollLeft / slider.scrollWidth) * slides.length);
 }
 
-// Helper to call element.closest(selector) where selector might be an id, without choking on it:
+// Helper to call element.closest(selector) where selector might be an id, so try id without choking on it:
 function closest(el: HTMLElement, selector: string) {
   let result;
   try {
-    // Try it as an id selector: (Ignore error if we've made the selector invalid)
+    // Try it as an id selector: (Ignore error if we've made the selector invalid by prefixing with #)
     result = el.closest(`#${selector}`);
   } catch(err) {
     // Ignore error
