@@ -54,6 +54,11 @@ export class ScrollsnapControls {
   @Prop() polyfill: boolean = false;
 
   /**
+   * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+   */
+  @Prop() disable: boolean = false;
+
+  /**
    * Experimental: When set, the component will toggle aria attributes on the scrollsnap elements.
    * This can be helpful to screenreaders but scenarios vary.
    */
@@ -82,6 +87,8 @@ export class ScrollsnapControls {
       })
     }
 
+    disableButtons.call(this, newCurrentIndex);
+
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
       scrollIntoViewPonyfill(slide, scrollIntoViewOptions);
@@ -95,7 +102,7 @@ export class ScrollsnapControls {
   init() {
     const { htmlFor } = this;
 
-    const slider = this.slider = document.getElementById(htmlFor) || document.querySelector(htmlFor);
+    const slider = this.slider = querySelector(htmlFor);
     if (slider) this.slides = Array.from(slider.children);
   }
 
@@ -157,6 +164,7 @@ export class ScrollsnapControls {
 
     if (next || prev) {
       document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
+      disableButtons.call(this, this.currentIndex || 0);
     }
 
     // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
@@ -215,6 +223,21 @@ function onScroll() {
   this.currentIndex = Math.round((slider.scrollLeft / slider.scrollWidth) * slides.length);
 }
 
+// Helper to disable the Prev/Next buttons when start or end of carousel is reached.
+// Must be used with "this" context set, eg: disableButtons.call(this)
+function disableButtons(currentIndex: number) {
+  if (this.disable) {
+    const prevEl = this.prev && querySelector(this.prev);
+    const nextEl = this.next && querySelector(this.next);
+
+    const disablePrev = currentIndex === 0 || this.slides.length === 0;
+    const disableNext = currentIndex === this.slides.length - 1 || this.slides.length === 0;
+
+    prevEl && (disablePrev ? prevEl.setAttribute('disabled', 'disabled') : prevEl.removeAttribute('disabled'));
+    nextEl && (disableNext ? nextEl.setAttribute('disabled', 'disabled') : nextEl.removeAttribute('disabled'));
+  }
+}
+
 // Helper to call element.closest(selector) where selector might be an id, so try id without choking on it:
 function closest(el: HTMLElement, selector: string) {
   let result;
@@ -227,4 +250,9 @@ function closest(el: HTMLElement, selector: string) {
     // Try the selector as-is, and surface any error as nornal to help the user debug:
     return result || el.closest(selector);
   }
+}
+
+// Same as document.querySelector() but first searches by id in case as id has been specified:
+function querySelector(selector: string) {
+  return document.getElementById(selector) || document.querySelector(selector);
 }

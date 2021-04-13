@@ -20,6 +20,10 @@ export namespace Components {
          */
         "currentIndex": number;
         /**
+          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+         */
+        "disable": boolean;
+        /**
           * Optional: Specify a character or markup for an indicator dot.
          */
         "dot": string | (() => void);
@@ -70,6 +74,10 @@ declare namespace LocalJSX {
           * Readonly: Attribute to surface the index of the current page.
          */
         "currentIndex"?: number;
+        /**
+          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+         */
+        "disable"?: boolean;
         /**
           * Optional: Specify a character or markup for an indicator dot.
          */
