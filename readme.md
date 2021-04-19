@@ -13,7 +13,7 @@ After adding a script you can use this compoennt just like any other html elemen
 
 Add a script tag similar to this:
 
-`<script type="module" src="https://unpkg.com/scrollsnap-controls/dist/esm/scrollsnap-controls.js"></script>`
+`<script type="module" src="https://cdn.jsdelivr.net/npm/scrollsnap-controls/dist/esm/scrollsnap-controls.min.js"></script>`
 
 ...then you can use the element like this:
 
