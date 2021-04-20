@@ -12,7 +12,7 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. Eg: data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
@@ -44,6 +44,10 @@ export namespace Components {
          */
         "next": string;
         /**
+          * Experimental: When set, the component will attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+         */
+        "notify": string;
+        /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
         "polyfill": boolean;
@@ -71,7 +75,7 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. Eg: data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**
@@ -102,6 +106,10 @@ declare namespace LocalJSX {
           * Optional: id or CSS selector for your "Next" button.
          */
         "next"?: string;
+        /**
+          * Experimental: When set, the component will attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+         */
+        "notify"?: string;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */

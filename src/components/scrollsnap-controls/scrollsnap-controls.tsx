@@ -67,10 +67,17 @@ export class ScrollsnapControls {
 
   /**
    * Experimental: When set, the component will attributes on the scrollsnap elements.
-   * Eg: data-scrollsnap-current-index="0" on the scrollsnap element.
+   * By default it will set data-scrollsnap-current-index="0" on the scrollsnap element.
    * This can be helpful for CSS or as a hook for extra behaviours.
    */
    @Prop() attrs: boolean = false;
+
+  /**
+   * Experimental: When set, the component will attributes on the elements that match this selector.
+   * This can be helpful for CSS or as a hook for extra behaviours.
+   * This attribute will be set: data-scrollsnap-current-index="0".
+   */
+   @Prop() notify: string = '';
 
   /**
    * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
@@ -86,6 +93,12 @@ export class ScrollsnapControls {
 
     if (this.attrs) {
       this.slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
+    }
+
+    if (this.notify) {
+      document.querySelectorAll(this.notify).forEach(
+        el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex))
+      )
     }
 
     // Ensure current slide has aria-current="true":
@@ -117,9 +130,15 @@ export class ScrollsnapControls {
     const slider = this.slider = querySelector(htmlFor);
     if (slider) {
       this.slides = Array.from(slider.children);
-      
+
       if (this.attrs) {
         slider.setAttribute('data-scrollsnap-current-index', String(this.currentIndex));
+      }
+
+      if (this.notify) {
+        document.querySelectorAll(this.notify).forEach(
+          el => el.setAttribute('data-scrollsnap-current-index', String(this.currentIndex))
+        )
       }
     }
 
