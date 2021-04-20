@@ -1,6 +1,6 @@
 {
   "name": "scrollsnap-controls",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Use with a CSS Scrollsnap element to add indicator dots & handlers for Prev/Next buttons",
   "main": "dist/index.cjs.js",
   "module": "dist/custom-elements/index.js",

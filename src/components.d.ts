@@ -12,6 +12,10 @@ export namespace Components {
          */
         "aria": boolean;
         /**
+          * Experimental: When set, the component will attributes on the scrollsnap elements. Eg: data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+         */
+        "attrs": boolean;
+        /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot": string | (() => void);
@@ -20,7 +24,7 @@ export namespace Components {
          */
         "currentIndex": number;
         /**
-          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
         "disable": boolean;
         /**
@@ -67,6 +71,10 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
+          * Experimental: When set, the component will attributes on the scrollsnap elements. Eg: data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+         */
+        "attrs"?: boolean;
+        /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot"?: string | (() => void);
@@ -75,7 +83,7 @@ declare namespace LocalJSX {
          */
         "currentIndex"?: number;
         /**
-          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
+          * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
         "disable"?: boolean;
         /**

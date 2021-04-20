@@ -66,6 +66,13 @@ export class ScrollsnapControls {
   @Prop() aria: boolean = false;
 
   /**
+   * Experimental: When set, the component will attributes on the scrollsnap elements.
+   * Eg: data-scrollsnap-current-index="0" on the scrollsnap element.
+   * This can be helpful for CSS or as a hook for extra behaviours.
+   */
+   @Prop() attrs: boolean = false;
+
+  /**
    * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
    */
   @Prop() keys: boolean = false;
@@ -73,9 +80,13 @@ export class ScrollsnapControls {
   @State() slides: Element[] = [];
 
   @Watch('currentIndex')
-  onIndexChange(newCurrentIndex) {
+  onIndexChange(newCurrentIndex: number) {
     const slide = this.slides[newCurrentIndex];
     const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "nearest", inline: "nearest"};
+
+    if (this.attrs) {
+      this.slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
+    }
 
     // Ensure current slide has aria-current="true":
     if (this.aria) {
@@ -104,7 +115,15 @@ export class ScrollsnapControls {
     const { htmlFor } = this;
 
     const slider = this.slider = querySelector(htmlFor);
-    if (slider) this.slides = Array.from(slider.children);
+    if (slider) {
+      this.slides = Array.from(slider.children);
+      
+      if (this.attrs) {
+        slider.setAttribute('data-scrollsnap-current-index', String(this.currentIndex));
+      }
+    }
+
+
   }
 
   // Will be handler to react to user scrolling:
