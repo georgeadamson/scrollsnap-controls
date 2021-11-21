@@ -86,11 +86,19 @@ export class ScrollsnapControls {
 
 
   /**
-   *
+   * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
    */
-  @Prop() scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'center', inline: 'center' };
+  @Prop() scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'nearest', inline: 'center' };
 
-  @Element() element: HTMLElement;
+  /**
+   * Function to return the index of the list item that is in the focal point of the scroll area.
+   * Defaults to find the index of the item in tthe centre of the visible area of scroll element.
+   * The funcion receives an array of children in the scroll element as its first argument.
+   */
+  @Prop() getCurrentIndex = getCurrentIndex;
+
+  //
+  @Element() host: HTMLElement;
 
   // Keep track of slides internally:
   @State() slides: Element[] = [];
@@ -156,7 +164,7 @@ export class ScrollsnapControls {
   init() {
     const { htmlFor , attrs, notify, currentIndex } = this;
     const slider = this.slider = htmlFor === 'auto'
-      ? this.element.parentElement.querySelector('ul,ol')
+      ? this.host.parentElement.querySelector('ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)')
       : querySelector(htmlFor);
 
     if (slider) {
@@ -287,8 +295,20 @@ function debounce(fn, ms) {
 // WARNING: This assumes all slides are the same width.
 // Could make the position detection smarter...?
 function onScroll() {
-  const { slider, slides } = this;
-  this.currentIndex = Math.round((slider.scrollLeft / slider.scrollWidth) * slides.length);
+  const index = getCurrentIndex(this.slides);
+  if (index > -1) this.currentIndex = index;
+}
+
+function getCurrentIndex(items: HTMLElement[]) {
+  const { top, left, width, height } = items[0]?.parentElement.getBoundingClientRect() || {};
+  const middleOfContainer =  {
+    x: left + width / 2,
+    y: top + height / 2,
+  }
+  const target = document.elementFromPoint(middleOfContainer.x, middleOfContainer.y);
+  const item = items.find(slide => slide.contains(target));
+
+  return items.indexOf(item);
 }
 
 // Helper to disable the Prev/Next buttons when start or end of carousel is reached.

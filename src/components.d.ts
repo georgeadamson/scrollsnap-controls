@@ -32,6 +32,10 @@ export namespace Components {
          */
         "dot": string | (() => void);
         /**
+          * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
+         */
+        "getCurrentIndex": (items: HTMLElement[]) => number;
+        /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor": string | 'auto';
@@ -55,6 +59,9 @@ export namespace Components {
           * Optional: id or CSS selector for your "Previous" button.
          */
         "prev": string;
+        /**
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+         */
         "scrollIntoViewOptions": ScrollIntoViewOptions;
     }
 }
@@ -96,6 +103,10 @@ declare namespace LocalJSX {
          */
         "dot"?: string | (() => void);
         /**
+          * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
+         */
+        "getCurrentIndex"?: (items: HTMLElement[]) => number;
+        /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor": string | 'auto';
@@ -119,6 +130,9 @@ declare namespace LocalJSX {
           * Optional: id or CSS selector for your "Previous" button.
          */
         "prev"?: string;
+        /**
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+         */
         "scrollIntoViewOptions"?: ScrollIntoViewOptions;
     }
     interface IntrinsicElements {
