@@ -12,7 +12,7 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
@@ -32,9 +32,9 @@ export namespace Components {
          */
         "dot": string | (() => void);
         /**
-          * Required: id or CSS selector for your scrollsnap element.
+          * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
-        "htmlFor": string;
+        "htmlFor": string | 'auto';
         /**
           * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
@@ -44,17 +44,18 @@ export namespace Components {
          */
         "next": string;
         /**
-          * Experimental: When set, the component will attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
         "notify": string;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
-        "polyfill": boolean;
+        "polyfill": boolean | 'auto';
         /**
           * Optional: id or CSS selector for your "Previous" button.
          */
         "prev": string;
+        "scrollIntoViewOptions": ScrollIntoViewOptions;
     }
 }
 declare global {
@@ -75,7 +76,7 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap element. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**
@@ -95,9 +96,9 @@ declare namespace LocalJSX {
          */
         "dot"?: string | (() => void);
         /**
-          * Required: id or CSS selector for your scrollsnap element.
+          * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
-        "htmlFor": string;
+        "htmlFor": string | 'auto';
         /**
           * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
@@ -107,17 +108,18 @@ declare namespace LocalJSX {
          */
         "next"?: string;
         /**
-          * Experimental: When set, the component will attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
         "notify"?: string;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
-        "polyfill"?: boolean;
+        "polyfill"?: boolean | 'auto';
         /**
           * Optional: id or CSS selector for your "Previous" button.
          */
         "prev"?: string;
+        "scrollIntoViewOptions"?: ScrollIntoViewOptions;
     }
     interface IntrinsicElements {
         "scrollsnap-controls": ScrollsnapControls;

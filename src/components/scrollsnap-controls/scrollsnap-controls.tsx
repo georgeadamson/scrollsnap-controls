@@ -1,14 +1,14 @@
-import { Component, Prop, State, Watch, h } from '@stencil/core';
+import { Component, Prop, State, Watch, Element, h } from '@stencil/core';
 
 // Carousel Page Indicators
 
 // Ponyfill for scrollIntoView will be late-loaded in unsupported browsers: (Safari, Edge, IE11)
 let scrollIntoViewPonyfill;
-const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
 const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
+const isTrue = { true: true };
 
 @Component({
   tag: 'scrollsnap-controls',
@@ -19,9 +19,9 @@ const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
 export class ScrollsnapControls {
 
   /**
-   * Required: id or CSS selector for your scrollsnap element.
+   * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
    */
-  @Prop({ attribute: 'for' }) htmlFor!: string;
+  @Prop({ attribute: 'for' }) htmlFor!: string | 'auto';
 
   /**
    * Optional: id or CSS selector for your "Previous" button.
@@ -51,7 +51,7 @@ export class ScrollsnapControls {
   /**
    * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
    */
-  @Prop() polyfill: boolean = false;
+  @Prop() polyfill: boolean | 'auto' = 'auto';
 
   /**
    * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons.
@@ -67,13 +67,13 @@ export class ScrollsnapControls {
 
   /**
    * Experimental: When set, the component will attributes on the scrollsnap elements.
-   * By default it will set data-scrollsnap-current-index="0" on the scrollsnap element.
+   * By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider.
    * This can be helpful for CSS or as a hook for extra behaviours.
    */
    @Prop() attrs: boolean = false;
 
   /**
-   * Experimental: When set, the component will attributes on the elements that match this selector.
+   * Experimental: When set, the component will set attributes on the elements that match this selector.
    * This can be helpful for CSS or as a hook for extra behaviours.
    * This attribute will be set: data-scrollsnap-current-index="0".
    */
@@ -84,26 +84,56 @@ export class ScrollsnapControls {
    */
   @Prop() keys: boolean = false;
 
+
+  /**
+   *
+   */
+  @Prop() scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'center', inline: 'center' };
+
+  @Element() element: HTMLElement;
+
+  // Keep track of slides internally:
   @State() slides: Element[] = [];
 
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex: number) {
-    const slide = this.slides[newCurrentIndex];
-    const scrollIntoViewOptions: ScrollIntoViewOptions = {behavior: "smooth", block: "nearest", inline: "nearest"};
+    const { slides, slider, attrs, notify, aria, polyfill, scrollIntoViewOptions } = this;
 
-    if (this.attrs) {
-      this.slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
+    // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
+    if (polyfill && !scrollIntoViewPonyfill) {
+      const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
+
+      if (isTrue[String(polyfill)] || (polyfill === 'auto' && !isSmoothScrollSupported)) {
+
+        // @ts-ignore
+        import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
+          .then(module => scrollIntoViewPonyfill = module.default);
+      }
     }
 
-    if (this.notify) {
-      document.querySelectorAll(this.notify).forEach(
-        el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex))
-      )
+    const slide = slides[newCurrentIndex];
+
+    if (attrs) {
+      slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
     }
+
+    if (notify) {
+      this.prev && querySelector(this.prev)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
+      this.next && querySelector(this.next)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
+
+      // If notify prop might be a selector (ie not just true), use it find elements to update:
+      if (!{ true: true }[notify] ) {
+        document.querySelectorAll(notify).forEach(
+          el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex))
+        )
+      }
+    }
+
+    disableButtons.call(this, newCurrentIndex);
 
     // Ensure current slide has aria-current="true":
-    if (this.aria) {
-      this.slides.forEach((slide,i) => {
+    if (aria) {
+      slides.forEach((slide,i) => {
         if (i === newCurrentIndex) {
           slide.setAttribute('aria-current', 'true');
         } else if (slide.hasAttribute('aria-current')) {
@@ -112,11 +142,10 @@ export class ScrollsnapControls {
       })
     }
 
-    disableButtons.call(this, newCurrentIndex);
-
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
-      scrollIntoViewPonyfill(slide, scrollIntoViewOptions);
+      // https://scroll-into-view-if-needed.netlify.app/
+      scrollIntoViewPonyfill(slide, {...scrollIntoViewOptions, boundary: this.slider });
     } else {
       slide.scrollIntoView(scrollIntoViewOptions);
     }
@@ -125,19 +154,21 @@ export class ScrollsnapControls {
   private slider: Element;
 
   init() {
-    const { htmlFor } = this;
+    const { htmlFor , attrs, notify, currentIndex } = this;
+    const slider = this.slider = htmlFor === 'auto'
+      ? this.element.parentElement.querySelector('ul,ol')
+      : querySelector(htmlFor);
 
-    const slider = this.slider = querySelector(htmlFor);
     if (slider) {
       this.slides = Array.from(slider.children);
 
-      if (this.attrs) {
-        slider.setAttribute('data-scrollsnap-current-index', String(this.currentIndex));
+      if (attrs) {
+        slider.setAttribute('data-scrollsnap-current-index', String(currentIndex));
       }
 
-      if (this.notify) {
-        document.querySelectorAll(this.notify).forEach(
-          el => el.setAttribute('data-scrollsnap-current-index', String(this.currentIndex))
+      if (notify) {
+        document.querySelectorAll(notify).forEach(
+          el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex))
         )
       }
     }
@@ -157,7 +188,7 @@ export class ScrollsnapControls {
     }
   }
 
-  // Always use the to move slides because it has the logic to keep currentIndex within limits:
+  // Always use this method to move slides because it includes the logic to keep currentIndex within limits:
   moveTo = (i: number) => {
     this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
   }
@@ -174,13 +205,11 @@ export class ScrollsnapControls {
   onBtnClick = (e: MouseEvent) => {
     const { prev, next } = this;
     const target = e.target as HTMLElement;
-    const nextEl = next && closest(target, next);
 
-    if (nextEl) {
+    if (next && closest(target, next)) {
       this.moveNext();
-    } else {
-      const prevEl = prev && closest(target, prev);
-      if (prevEl) this.movePrev();
+    } else if(prev && closest(target, prev)) {
+      this.movePrev();
     }
   }
 
@@ -192,13 +221,13 @@ export class ScrollsnapControls {
   componentWillLoad() {
     this.init();
 
-    const { slider, prev, next, onKey, onBtnClick } = this;
+    const { slider, prev, next, keys, onKey, onBtnClick } = this;
 
     if (slider) {
       // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
       this.onScroll = debounce(onScroll.bind(this), 100);
       slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
-      if (this.keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
+      if (keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
 
     if (next || prev) {
@@ -206,12 +235,12 @@ export class ScrollsnapControls {
       disableButtons.call(this, this.currentIndex || 0);
     }
 
-    // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
-    if (!isSmoothScrollSupported && !scrollIntoViewPonyfill && this.polyfill) {
-      // @ts-ignore
-      import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
-        .then(module => scrollIntoViewPonyfill = module.default);
-    }
+    // // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
+    // if (!isSmoothScrollSupported && !scrollIntoViewPonyfill && this.polyfill) {
+    //   // @ts-ignore
+    //   import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
+    //     .then(module => scrollIntoViewPonyfill = module.default);
+    // }
   }
 
   // Housekeeping:
@@ -277,7 +306,7 @@ function disableButtons(currentIndex: number) {
   }
 }
 
-// Helper to call element.closest(selector) where selector might be an id, so try id without choking on it:
+// Same as slider.closest() but first searches by id in case an id has been supplied:
 function closest(el: HTMLElement, selector: string) {
   let result;
   try {
@@ -286,12 +315,12 @@ function closest(el: HTMLElement, selector: string) {
   } catch(err) {
     // Ignore error
   } finally {
-    // Try the selector as-is, and surface any error as nornal to help the user debug:
+    // Return slider if found by id, or try the selector as-is, and surface any error as nornal to help debug:
     return result || el.closest(selector);
   }
 }
 
-// Same as document.querySelector() but first searches by id in case as id has been specified:
+// Same as document.querySelector() but first searches by id in case an id has been supplied:
 function querySelector(selector: string) {
   return document.getElementById(selector) || document.querySelector(selector);
 }
