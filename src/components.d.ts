@@ -12,7 +12,7 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
@@ -83,7 +83,7 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**

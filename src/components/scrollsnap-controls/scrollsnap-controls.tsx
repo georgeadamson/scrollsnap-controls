@@ -7,17 +7,16 @@ let scrollIntoViewPonyfill;
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
-const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
+const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
 const isTrue = { true: true };
 
 @Component({
   tag: 'scrollsnap-controls',
   styleUrl: 'scrollsnap-controls.css',
   shadow: false,
-  scoped: false
+  scoped: false,
 })
 export class ScrollsnapControls {
-
   /**
    * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
    */
@@ -36,7 +35,7 @@ export class ScrollsnapControls {
   /**
    * Optional: Specify a character or markup for an indicator dot.
    */
-  @Prop() dot: string | (() => void) ='◯';
+  @Prop() dot: string | (() => void) = '◯';
 
   /**
    * Optional: Specify a character or markup for the "current" page indicator dot.
@@ -66,24 +65,23 @@ export class ScrollsnapControls {
   @Prop() aria: boolean = false;
 
   /**
-   * Experimental: When set, the component will attributes on the scrollsnap elements.
+   * Experimental: When set, the component will set attributes on the scrollsnap elements.
    * By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider.
    * This can be helpful for CSS or as a hook for extra behaviours.
    */
-   @Prop() attrs: boolean = false;
+  @Prop() attrs: boolean = false;
 
   /**
    * Experimental: When set, the component will set attributes on the elements that match this selector.
    * This can be helpful for CSS or as a hook for extra behaviours.
    * This attribute will be set: data-scrollsnap-current-index="0".
    */
-   @Prop() notify: string = '';
+  @Prop() notify: string = '';
 
   /**
    * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
    */
   @Prop() keys: boolean = false;
-
 
   /**
    * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
@@ -112,10 +110,8 @@ export class ScrollsnapControls {
       const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
 
       if (isTrue[String(polyfill)] || (polyfill === 'auto' && !isSmoothScrollSupported)) {
-
         // @ts-ignore
-        import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
-          .then(module => scrollIntoViewPonyfill = module.default);
+        import('smooth-scroll-into-view-if-needed').then(module => (scrollIntoViewPonyfill = module.default));
       }
     }
 
@@ -130,10 +126,8 @@ export class ScrollsnapControls {
       this.next && querySelector(this.next)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
 
       // If notify prop might be a selector (ie not just true), use it find elements to update:
-      if (!{ true: true }[notify] ) {
-        document.querySelectorAll(notify).forEach(
-          el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex))
-        )
+      if (!{ true: true }[notify]) {
+        document.querySelectorAll(notify).forEach(el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex)));
       }
     }
 
@@ -141,19 +135,19 @@ export class ScrollsnapControls {
 
     // Ensure current slide has aria-current="true":
     if (aria) {
-      slides.forEach((slide,i) => {
+      slides.forEach((slide, i) => {
         if (i === newCurrentIndex) {
           slide.setAttribute('aria-current', 'true');
         } else if (slide.hasAttribute('aria-current')) {
           slide.removeAttribute('aria-current');
         }
-      })
+      });
     }
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
       // https://scroll-into-view-if-needed.netlify.app/
-      scrollIntoViewPonyfill(slide, {...scrollIntoViewOptions, boundary: this.slider });
+      scrollIntoViewPonyfill(slide, { ...scrollIntoViewOptions, boundary: this.slider });
     } else {
       slide.scrollIntoView(scrollIntoViewOptions);
     }
@@ -162,10 +156,9 @@ export class ScrollsnapControls {
   private slider: Element;
 
   init() {
-    const { htmlFor , attrs, notify, currentIndex } = this;
-    const slider = this.slider = htmlFor === 'auto'
-      ? this.host.parentElement.querySelector('ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)')
-      : querySelector(htmlFor);
+    const { htmlFor, attrs, notify, currentIndex } = this;
+    const slider = (this.slider =
+      htmlFor === 'auto' ? this.host.parentElement.querySelector('ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)') : querySelector(htmlFor));
 
     if (slider) {
       this.slides = Array.from(slider.children);
@@ -175,13 +168,9 @@ export class ScrollsnapControls {
       }
 
       if (notify) {
-        document.querySelectorAll(notify).forEach(
-          el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex))
-        )
+        document.querySelectorAll(notify).forEach(el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex)));
       }
     }
-
-
   }
 
   // Will be handler to react to user scrolling:
@@ -194,20 +183,20 @@ export class ScrollsnapControls {
       const i = Array.from(dot.parentNode.children).indexOf(dot);
       this.moveTo(i);
     }
-  }
+  };
 
   // Always use this method to move slides because it includes the logic to keep currentIndex within limits:
   moveTo = (i: number) => {
     this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
-  }
+  };
 
   movePrev = () => {
     this.moveTo(this.currentIndex - 1);
-  }
+  };
 
   moveNext = () => {
     this.moveTo(this.currentIndex + 1);
-  }
+  };
 
   // Delegated click handler for the Prev/Next buttons:
   onBtnClick = (e: MouseEvent) => {
@@ -216,15 +205,15 @@ export class ScrollsnapControls {
 
     if (next && closest(target, next)) {
       this.moveNext();
-    } else if(prev && closest(target, prev)) {
+    } else if (prev && closest(target, prev)) {
       this.movePrev();
     }
-  }
+  };
 
   onKey = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight') this.currentIndex++;
     else if (e.key === 'ArrowLeft') this.currentIndex--;
-  }
+  };
 
   componentWillLoad() {
     this.init();
@@ -264,31 +253,28 @@ export class ScrollsnapControls {
   }
 
   render() {
-    const { slides = [], dot, currentDot, currentIndex, onDotClick, onKey} = this;
+    const { slides = [], dot, currentDot, currentIndex, onDotClick, onKey } = this;
 
     return (
       <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick} onKeyDown={onKey}>
-        {slides.map((_,i) => (
-          <li class={`${DOT_CLASSNAME} ${currentIndex === i ? 'active' : ''}`}>
-            {currentIndex === i ? currentDot : dot}
-          </li>)
-        )}
+        {slides.map((_, i) => (
+          <li class={`${DOT_CLASSNAME} ${currentIndex === i ? 'active' : ''}`}>{currentIndex === i ? currentDot : dot}</li>
+        ))}
       </ol>
     );
   }
-
 }
 
 // This rudimentary version of a debounce helper is all we need here:
 function debounce(fn, ms) {
-	let timerId
-	return () => {
-		clearTimeout(timerId)
-		timerId = setTimeout(() => {
-			timerId = null;
-      fn()
-		}, ms);
-	}
+  let timerId;
+  return () => {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      timerId = null;
+      fn();
+    }, ms);
+  };
 }
 
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
@@ -301,10 +287,10 @@ function onScroll() {
 
 function getCurrentIndex(items: HTMLElement[]) {
   const { top, left, width, height } = items[0]?.parentElement.getBoundingClientRect() || {};
-  const middleOfContainer =  {
+  const middleOfContainer = {
     x: left + width / 2,
     y: top + height / 2,
-  }
+  };
   const target = document.elementFromPoint(middleOfContainer.x, middleOfContainer.y);
   const item = items.find(slide => slide.contains(target));
 
@@ -332,7 +318,7 @@ function closest(el: HTMLElement, selector: string) {
   try {
     // Try it as an id selector: (Ignore error if we've made the selector invalid by prefixing with #)
     result = el.closest(`#${selector}`);
-  } catch(err) {
+  } catch (err) {
     // Ignore error
   } finally {
     // Return slider if found by id, or try the selector as-is, and surface any error as nornal to help debug:
