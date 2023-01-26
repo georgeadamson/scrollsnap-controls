@@ -6,47 +6,48 @@
     position: relative;
     width: 300px;
   }
-  
+
   .app-slider {
     padding: 0;
     width: 100%;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    
+
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    
+
     list-style: none;
   }
-  
+
   .app-slider > * {
     scroll-snap-align: center;
     scroll-snap-stop: always;
-    width: 300px;
+    width: 50%;
+    min-width:50vw;
   }
-  
+
   .app-slide-heading,
   .app-slide-text,
   .app-slide-label{
     text-align: center;
   }
-  
-  
+
+
   .app-slide-label {
     margin-top: 50px;
   }
-  
+
   .app-slide-img {
     width: 260px;
     margin: 0 20px;
   }
-  
+
   .app-slide-trainstops {
     margin: 30px 0;
     text-align: center;
   }
-  
+
   /* trainstops are just a hack for this demo. Do not use this code! */
   .app-slide-trainstops img {
     display:none;
@@ -54,7 +55,7 @@
   .app-slide-trainstops:after {
     content: '⚪️🔘⚪️⚪️'
   }
-  
+
   .app-slider-overlay {
     width: 300px;
     position: absolute;

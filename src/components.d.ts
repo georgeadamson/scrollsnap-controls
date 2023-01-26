@@ -44,19 +44,19 @@ export namespace Components {
          */
         "keys": boolean;
         /**
-          * Optional: id or CSS selector for your "Next" button.
+          * Optional: CSS selector for your "Next" button.
          */
         "next": string;
         /**
-          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
-        "notify": string;
+        "notify": string | boolean;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
         "polyfill": boolean | 'auto';
         /**
-          * Optional: id or CSS selector for your "Previous" button.
+          * Optional: CSS selector for your "Previous" button.
          */
         "prev": string;
         /**
@@ -109,25 +109,25 @@ declare namespace LocalJSX {
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
-        "htmlFor": string | 'auto';
+        "htmlFor"?: string | 'auto';
         /**
           * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
         "keys"?: boolean;
         /**
-          * Optional: id or CSS selector for your "Next" button.
+          * Optional: CSS selector for your "Next" button.
          */
         "next"?: string;
         /**
-          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
-        "notify"?: string;
+        "notify"?: string | boolean;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
         "polyfill"?: boolean | 'auto';
         /**
-          * Optional: id or CSS selector for your "Previous" button.
+          * Optional: CSS selector for your "Previous" button.
          */
         "prev"?: string;
         /**

@@ -8,7 +8,8 @@ let scrollIntoViewPonyfill;
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
 const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
-const isTrue = { true: true };
+const SLIDER_SELECTOR = 'ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)';
+const isTrue = { true: true }; // Helper to match "true" or true (string or boolean).
 
 @Component({
   tag: 'scrollsnap-controls',
@@ -20,15 +21,15 @@ export class ScrollsnapControls {
   /**
    * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
    */
-  @Prop({ attribute: 'for' }) htmlFor!: string | 'auto';
+  @Prop({ attribute: 'for' }) htmlFor: string | 'auto' = 'auto';
 
   /**
-   * Optional: id or CSS selector for your "Previous" button.
+   * Optional: CSS selector for your "Previous" button.
    */
   @Prop() prev: string;
 
   /**
-   * Optional: id or CSS selector for your "Next" button.
+   * Optional: CSS selector for your "Next" button.
    */
   @Prop() next: string;
 
@@ -72,11 +73,11 @@ export class ScrollsnapControls {
   @Prop() attrs: boolean = false;
 
   /**
-   * Experimental: When set, the component will set attributes on the elements that match this selector.
+   * Experimental: When set, the component will set data-attributes on the elements that match this selector.
    * This can be helpful for CSS or as a hook for extra behaviours.
    * This attribute will be set: data-scrollsnap-current-index="0".
    */
-  @Prop() notify: string = '';
+  @Prop() notify: string | boolean;
 
   /**
    * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
@@ -110,7 +111,6 @@ export class ScrollsnapControls {
       const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
 
       if (isTrue[String(polyfill)] || (polyfill === 'auto' && !isSmoothScrollSupported)) {
-        // @ts-ignore
         import('smooth-scroll-into-view-if-needed').then(module => (scrollIntoViewPonyfill = module.default));
       }
     }
@@ -121,14 +121,8 @@ export class ScrollsnapControls {
       slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
     }
 
-    if (notify) {
-      this.prev && querySelector(this.prev)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
-      this.next && querySelector(this.next)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
-
-      // If notify prop might be a selector (ie not just true), use it find elements to update:
-      if (!{ true: true }[notify]) {
-        document.querySelectorAll(notify).forEach(el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex)));
-      }
+    if (notify || notify === '') {
+      doNotify(notify, newCurrentIndex, slider, slides, this.prev, this.next);
     }
 
     disableButtons.call(this, newCurrentIndex);
@@ -153,27 +147,27 @@ export class ScrollsnapControls {
     }
   }
 
-  private slider: Element;
+  private slider: HTMLElement;
 
   init() {
     const { htmlFor, attrs, notify, currentIndex } = this;
-    const slider = (this.slider =
-      htmlFor === 'auto' ? this.host.parentElement.querySelector('ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)') : querySelector(htmlFor));
+    const slider = (this.slider = htmlFor === 'auto' ? this.host.closest(`:has(${SLIDER_SELECTOR})`).querySelector(SLIDER_SELECTOR) : querySelector(htmlFor));
 
     if (slider) {
-      this.slides = Array.from(slider.children);
+      const slides = Array.from(slider.children);
+      this.slides = slides;
 
       if (attrs) {
         slider.setAttribute('data-scrollsnap-current-index', String(currentIndex));
       }
 
-      if (notify) {
-        document.querySelectorAll(notify).forEach(el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex)));
+      if (notify || notify === '') {
+        doNotify(notify, currentIndex, slider, slides, this.prev, this.next);
       }
     }
   }
 
-  // Will be handler to react to user scrolling:
+  // During init this will be assigned a debounced handler for user scrolling:
   onScroll: (e: WheelEvent) => void = null;
 
   // Jump to corresponding slide when user clicks an indicator dot:
@@ -191,11 +185,13 @@ export class ScrollsnapControls {
   };
 
   movePrev = () => {
-    this.moveTo(this.currentIndex - 1);
+    // this.moveTo(this.currentIndex - 1);
+    this.currentIndex--;
   };
 
   moveNext = () => {
-    this.moveTo(this.currentIndex + 1);
+    // this.moveTo(this.currentIndex + 1);
+    this.currentIndex++;
   };
 
   // Delegated click handler for the Prev/Next buttons:
@@ -257,9 +253,14 @@ export class ScrollsnapControls {
 
     return (
       <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick} onKeyDown={onKey}>
-        {slides.map((_, i) => (
-          <li class={`${DOT_CLASSNAME} ${currentIndex === i ? 'active' : ''}`}>{currentIndex === i ? currentDot : dot}</li>
-        ))}
+        {slides.map((_, i) => {
+          const isActive = currentIndex === i;
+          return (
+            <li key={i} class={`${DOT_CLASSNAME} ${isActive ? 'active' : ''}`} data-active={isActive}>
+              {isActive ? currentDot : dot}
+            </li>
+          );
+        })}
       </ol>
     );
   }
@@ -329,4 +330,18 @@ function closest(el: HTMLElement, selector: string) {
 // Same as document.querySelector() but first searches by id in case an id has been supplied:
 function querySelector(selector: string) {
   return document.getElementById(selector) || document.querySelector(selector);
+}
+
+function doNotify(notify: string | boolean, currentIndex: number, slider: HTMLElement, slides, prev, next) {
+  // Update data-scrollsnap-active on carousel items:
+  slides.forEach((slide, i) => (i === currentIndex ? slide.setAttribute('data-scrollsnap-active', i) : slide.removeAttribute('data-scrollsnap-active')));
+
+  slider.setAttribute('data-scrollsnap-current-index', String(currentIndex));
+  prev && querySelector(prev)?.setAttribute('data-scrollsnap-current-index', String(currentIndex));
+  next && querySelector(next)?.setAttribute('data-scrollsnap-current-index', String(currentIndex));
+
+  // If notify prop is a selector string (ie not just true), use it find elements to update:
+  if (notify && !isTrue[String(notify)]) {
+    document.querySelectorAll(String(notify)).forEach(el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex)));
+  }
 }
