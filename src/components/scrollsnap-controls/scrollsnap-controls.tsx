@@ -121,13 +121,7 @@ export class ScrollsnapControls {
 
     // Ensure current slide has aria-current="true":
     if (aria) {
-      slides.forEach((slide, i) => {
-        if (i === newCurrentIndex) {
-          slide.setAttribute('aria-current', 'true');
-        } else if (slide.hasAttribute('aria-current')) {
-          slide.removeAttribute('aria-current');
-        }
-      });
+      slides.forEach((slide, i) => toggleAttr(slide, 'aria-current', i, i === newCurrentIndex));
     }
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
@@ -324,20 +318,23 @@ function doNotify() {
   const { notify, currentIndex, slider, slides, prev, next } = this;
 
   // Update data-scrollsnap-active on carousel items:
-  slides.forEach((slide, i) => {
-    if (i === currentIndex) {
-      slide.setAttribute('data-scrollsnap-active', String(i));
-    } else if (slide.hasAttribute('data-scrollsnap-active')) {
-      slide.removeAttribute('data-scrollsnap-active');
-    }
-  });
+  slides.forEach((slide, i) => toggleAttr(slide, CURRENT_INDEX_ATTR, i, i === currentIndex));
 
   slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
   prev && querySelector(prev)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
   next && querySelector(next)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
 
-  // If notify prop is a selector string (ie not just true), use it find elements to update:
+  // If notify prop is a selector string (ie not just true), use it to find elements to update:
   if (notify && !isTrue[String(notify)]) {
     document.querySelectorAll(String(notify)).forEach(el => el.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex)));
+  }
+}
+
+// Helper to setAttribute or removeAttribute based on a condition:
+function toggleAttr(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
+  if (condition) {
+    element.setAttribute(attrName, String(attrValue));
+  } else if (element.hasAttribute(attrName)) {
+    element.removeAttribute(attrName);
   }
 }

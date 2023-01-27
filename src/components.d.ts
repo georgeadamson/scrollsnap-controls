@@ -40,7 +40,7 @@ export namespace Components {
          */
         "htmlFor": string | 'auto';
         /**
-          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+          * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
         "keys": boolean;
         /**
@@ -111,7 +111,7 @@ declare namespace LocalJSX {
          */
         "htmlFor"?: string | 'auto';
         /**
-          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+          * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
         "keys"?: boolean;
         /**
