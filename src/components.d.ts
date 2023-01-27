@@ -12,7 +12,7 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will setCURRENT_INDEX_ATTR"0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
@@ -34,7 +34,7 @@ export namespace Components {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex": (items: HTMLElement[]) => number;
+        "getCurrentIndex": (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
@@ -48,7 +48,7 @@ export namespace Components {
          */
         "next": string;
         /**
-          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set:CURRENT_INDEX_ATTR"0".
          */
         "notify": string | boolean;
         /**
@@ -83,7 +83,7 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will setCURRENT_INDEX_ATTR"0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**
@@ -105,7 +105,7 @@ declare namespace LocalJSX {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex"?: (items: HTMLElement[]) => number;
+        "getCurrentIndex"?: (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
@@ -119,7 +119,7 @@ declare namespace LocalJSX {
          */
         "next"?: string;
         /**
-          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set:CURRENT_INDEX_ATTR"0".
          */
         "notify"?: string | boolean;
         /**
