@@ -121,7 +121,7 @@ export class ScrollsnapControls {
 
     // Ensure current slide has aria-current="true":
     if (aria) {
-      slides.forEach((slide, i) => toggleAttr(slide, 'aria-current', i, i === newCurrentIndex));
+      slides.forEach((slide, i) => toggleAttribute(slide, 'aria-current', i, i === newCurrentIndex));
     }
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
@@ -289,8 +289,11 @@ function disableButtons(currentIndex: number) {
     const disablePrev = currentIndex === 0 || slides.length === 0;
     const disableNext = currentIndex === slides.length - 1 || slides.length === 0;
 
-    prevEl && (disablePrev ? prevEl.setAttribute('disabled', 'disabled') : prevEl.removeAttribute('disabled'));
-    nextEl && (disableNext ? nextEl.setAttribute('disabled', 'disabled') : nextEl.removeAttribute('disabled'));
+    // prevEl && (disablePrev ? prevEl.setAttribute('disabled', 'disabled') : prevEl.removeAttribute('disabled'));
+    // nextEl && (disableNext ? nextEl.setAttribute('disabled', 'disabled') : nextEl.removeAttribute('disabled'));
+
+    prevEl && toggleAttribute(prevEl, 'disabled', 'disabled', disablePrev);
+    nextEl && toggleAttribute(nextEl, 'disabled', 'disabled', disableNext);
   }
 }
 
@@ -318,7 +321,7 @@ function doNotify() {
   const { notify, currentIndex, slider, slides, prev, next } = this;
 
   // Update data-scrollsnap-active on carousel items:
-  slides.forEach((slide, i) => toggleAttr(slide, CURRENT_INDEX_ATTR, i, i === currentIndex));
+  slides.forEach((slide, i) => toggleAttribute(slide, CURRENT_INDEX_ATTR, i, i === currentIndex));
 
   slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
   prev && querySelector(prev)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
@@ -331,7 +334,7 @@ function doNotify() {
 }
 
 // Helper to setAttribute or removeAttribute based on a condition:
-function toggleAttr(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
+function toggleAttribute(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
   if (condition) {
     element.setAttribute(attrName, String(attrValue));
   } else if (element.hasAttribute(attrName)) {
