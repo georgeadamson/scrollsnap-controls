@@ -81,7 +81,7 @@ export class ScrollsnapControls {
   @Prop() notify: string | boolean;
 
   /**
-   * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+   * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
    */
   @Prop() keys: boolean = false;
 
@@ -324,7 +324,13 @@ function doNotify() {
   const { notify, currentIndex, slider, slides, prev, next } = this;
 
   // Update data-scrollsnap-active on carousel items:
-  slides.forEach((slide, i) => (i === currentIndex ? slide.setAttribute('data-scrollsnap-active', String(i)) : slide.removeAttribute('data-scrollsnap-active')));
+  slides.forEach((slide, i) => {
+    if (i === currentIndex) {
+      slide.setAttribute('data-scrollsnap-active', String(i));
+    } else if (slide.hasAttribute('data-scrollsnap-active')) {
+      slide.removeAttribute('data-scrollsnap-active');
+    }
+  });
 
   slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
   prev && querySelector(prev)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
