@@ -3,7 +3,10 @@ import { Component, Prop, State, Watch, Element, h } from '@stencil/core';
 // Carousel Page Indicators
 
 // Ponyfill for scrollIntoView will be late-loaded in unsupported browsers: (Safari, Edge, IE11)
-let scrollIntoViewPonyfill;
+interface ScrollIntoViewPonyfillOptions extends ScrollIntoViewOptions {
+  boundary: Element;
+}
+let scrollIntoViewPonyfill: (element: Element, scrollIntoViewOptions: ScrollIntoViewPonyfillOptions) => void;
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
@@ -262,10 +265,19 @@ function debounce(fn, ms) {
 
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
 // WARNING: This assumes all slides are the same width.
-// Could make the position detection smarter...?
 function onScrollHandler() {
-  const index = getCurrentIndex(this.slides);
-  if (index > -1) this.currentIndex = index;
+  const { slider } = this;
+  // Detect fist and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
+  const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
+
+  if (scrollPercent === 0) {
+    this.currentIndex = 0;
+  } else if (scrollPercent === 100) {
+    this.currentIndex = this.slides.length - 1;
+  } else {
+    const index = getCurrentIndex(this.slides);
+    if (index > -1) this.currentIndex = index;
+  }
 }
 
 function getCurrentIndex(slides: HTMLElement[]) {
