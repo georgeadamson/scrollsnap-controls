@@ -60,7 +60,7 @@ export namespace Components {
          */
         "prev": string;
         /**
-          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
          */
         "scrollIntoViewOptions": ScrollIntoViewOptions;
     }
@@ -131,7 +131,7 @@ declare namespace LocalJSX {
          */
         "prev"?: string;
         /**
-          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
          */
         "scrollIntoViewOptions"?: ScrollIntoViewOptions;
     }

@@ -90,8 +90,9 @@ export class ScrollsnapControls {
 
   /**
    * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+   * Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
    */
-  @Prop() scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'nearest', inline: 'center' };
+  @Prop({ attribute: 'scrollOptions' }) scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'nearest', inline: 'center' };
 
   /**
    * Function to return the index of the list item that is in the focal point of the scroll area.
@@ -100,7 +101,7 @@ export class ScrollsnapControls {
    */
   @Prop() getCurrentIndex = getCurrentIndex;
 
-  //
+  // Internal use only. Stencil exposes host as a reference to the <scrollsnap-controls> element itself:
   @Element() host: HTMLElement;
 
   // Keep track of slides internally:
@@ -109,7 +110,6 @@ export class ScrollsnapControls {
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex: number) {
     const { slides, slider, attrs, notify, aria, scrollIntoViewOptions } = this;
-
     const slide = slides[newCurrentIndex];
 
     if (attrs) {
@@ -166,31 +166,40 @@ export class ScrollsnapControls {
 
   // Delegated click handler for the Prev/Next buttons:
   onBtnClick = (e: MouseEvent) => {
-    const { prev, next } = this;
+    const { prev, next, moveNext, movePrev } = this;
     const target = e.target as HTMLElement;
 
     if (next && closest(target, next)) {
-      this.moveNext();
+      moveNext();
     } else if (prev && closest(target, prev)) {
-      this.movePrev();
+      movePrev();
     }
   };
 
   onKey = (e: KeyboardEvent) => {
-    console.log(e);
     if (e.key === 'ArrowRight') this.currentIndex++;
     else if (e.key === 'ArrowLeft') this.currentIndex--;
   };
 
   componentWillLoad() {
+    let { scrollIntoViewOptions } = this;
     const { htmlFor, attrs, notify, currentIndex, prev, next, keys, onKey, onBtnClick, polyfill } = this;
 
-    // Locate the carousel element:
+    // When scrollIntoViewOptions aare supplied as raw JSON convert to object:
+    if (typeof scrollIntoViewOptions === 'string' && scrollIntoViewOptions) {
+      try {
+        scrollIntoViewOptions = JSON.parse(decodeURIComponent(scrollIntoViewOptions));
+      } catch (err) {
+        scrollIntoViewOptions = {};
+      }
+      this.scrollIntoViewOptions = scrollIntoViewOptions;
+    }
+
+    // Locate the carousel element nearby:
     const slider = (this.slider = htmlFor === 'auto' ? this.host.closest(`:has(${SLIDER_SELECTOR})`).querySelector(SLIDER_SELECTOR) : querySelector(htmlFor));
 
     if (slider) {
-      const slides = Array.from(slider.children) as HTMLElement[];
-      this.slides = slides;
+      this.slides = Array.from(slider.children) as HTMLElement[];
 
       if (attrs) {
         slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
@@ -267,7 +276,7 @@ function debounce(fn, ms) {
 // WARNING: This assumes all slides are the same width.
 function onScrollHandler() {
   const { slider } = this;
-  // Detect fist and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
+  // Detect first and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
   const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
 
   if (scrollPercent === 0) {
@@ -293,16 +302,14 @@ function getCurrentIndex(slides: HTMLElement[]) {
 // Helper to disable the Prev/Next buttons when start or end of carousel is reached.
 // Must be used with "this" context set, eg: disableButtons.call(this)
 function disableButtons(currentIndex: number) {
-  if (this.disable) {
-    const { prev, next, slides } = this;
+  const { disable, prev, next, slides } = this;
+
+  if (disable) {
     const prevEl = prev && querySelector(prev);
     const nextEl = next && querySelector(next);
 
     const disablePrev = currentIndex === 0 || slides.length === 0;
     const disableNext = currentIndex === slides.length - 1 || slides.length === 0;
-
-    // prevEl && (disablePrev ? prevEl.setAttribute('disabled', 'disabled') : prevEl.removeAttribute('disabled'));
-    // nextEl && (disableNext ? nextEl.setAttribute('disabled', 'disabled') : nextEl.removeAttribute('disabled'));
 
     prevEl && toggleAttribute(prevEl, 'disabled', 'disabled', disablePrev);
     nextEl && toggleAttribute(nextEl, 'disabled', 'disabled', disableNext);

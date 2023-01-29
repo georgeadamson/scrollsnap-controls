@@ -2,9 +2,9 @@
 
 const slideMarkup = `
 <li class="app-slide">
-  <h3 class="app-slide-heading">Make Your Own</h3>
-  <p class="app-slide-text">Where the fun happens! Record stories in your own voice, make playlists from your MP3s.</p>
-  <img class="app-slide-img" src="https://source.unsplash.com/random/50x50" />
+  <h3 class="app-slide-heading">Demo item</h3>
+  <p class="app-slide-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.t</p>
+  <img class="app-slide-img" src="https://source.unsplash.com/random/50x50.png" />
 </li>
 `
 
@@ -13,61 +13,91 @@ export default {
     title: './scrollsnap-controls.tsx',
 } ;
 
-const Template = ({notify}) => `
-<style>
-  .app-slider {
-    padding: 0;
-    width: 100%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+const Template = (args) => {
+  let { notify, hidden, disable, dot, currentDot, scrollOptions, demoItems, demoItemsPerPage, prev, next, noPrevNext } = args;
 
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+  notify = notify ? 'notify' : '';
+  hidden = hidden ? 'hidden' : '';
+  disable = disable ? 'disable' : '';
+  dot = dot ? `dot="${dot}"` : '';
+  currentDot = currentDot ? `current-dot="${currentDot}"` : '';
+  scrollOptions = scrollOptions ? `scroll-options="${ encodeURIComponent(JSON.stringify(scrollOptions)) }"` : '';
 
-    list-style: none;
+  const itemWidth = 150;
+
+  return `
+    <style>
+      .app-slider {
+        border: 1px solid silver;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        list-style: none;
+        padding: 0;
+        width: 100%;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+      }
+      .app-slider > * {
+        scroll-snap-align: center;
+        xscroll-snap-stop: always;
+        min-width: ${itemWidth}px;
+      }
+      ${noPrevNext && '.button { display: none }'}
+    </style>
+
+    <div style="width:300px">
+      <ul id="demo-slider1" class="app-slider" style="width:${demoItemsPerPage * itemWidth}px">
+        ${ slideMarkup.repeat(demoItems) }
+      </ul>
+
+      <button class="button" id="prev-btn">Prev</button>
+      <button class="button" id="next-btn">Next</button>
+      <scrollsnap-controls ${notify} ${hidden} ${disable} ${dot} ${currentDot} ${scrollOptions} prev="${prev}" next="${next}"></scrollsnap-controls>
+    </div>
+  `};
+
+  export const Default = Template.bind({});
+  export const WithPrevNext = Template.bind({});
+  export const WithPrevNextAutoDisable = Template.bind({});
+  export const WithControlsHidden = Template.bind({});
+  export const OneItemInView = Template.bind({});
+
+  const defaultArgs = {
+    notify: false,
+    hidden: false,
+    disable: false,
+    dot: '◯',
+    currentDot: '⬤',
+    prev: '#prev-btn',
+    next: '#next-btn',
+    demoItems: 5,
+    demoItemsPerPage: 3
   }
 
-  .app-slider > * {
-    scroll-snap-align: center;
-    xscroll-snap-stop: always;
-    min-width: 150px;
+  Default.args = {...defaultArgs,
+    noPrevNext: true
+  };
+
+
+  WithPrevNext.args = {...defaultArgs,
+  };
+
+  WithPrevNextAutoDisable.args = {
+    ...defaultArgs,
+    disable: true,
+    demoItemsPerPage: 3
   }
-</style>
 
-<div style="width:300px">
-  <ul id="demo-slider1" class="app-slider">
-    ${ slideMarkup.repeat(10) }
-  </ul>
+  WithControlsHidden.args = {
+    ...defaultArgs,
+    hidden: true,
+    disable: true,
+    demoItemsPerPage: 3
+  }
 
-  <button id="prev1">Prev</button>
-  <button id="next1">Next</button>
-  <scrollsnap-controls ${notify} prev="#prev1" next="#next1"></scrollsnap-controls>
-</div>
-
-<div style="width:400px">
-  <ul id="demo-slider2" class="app-slider">
-    ${ slideMarkup.repeat(10) }
-  </ul>
-
-  <button id="prev2">Prev</button>
-  <button id="next2">Next</button>
-  <scrollsnap-controls ${notify} prev="#prev2" next="#next2"></scrollsnap-controls>
-</div>
-
-<div style="width:700px">
-  <ul id="demo-slider3" class="app-slider">
-    ${ slideMarkup.repeat(10) }
-  </ul>
-
-  <button id="prev3">Prev</button>
-  <button id="next3">Next</button>
-  <scrollsnap-controls ${notify} prev="#prev3" next="#next3"></scrollsnap-controls>
-</div>
-`;
-
-export const Example = Template.bind({});
-
-Example.args = {
-  notify: false,
-};
+  OneItemInView.args = {
+    ...defaultArgs,
+    disable: true,
+    demoItemsPerPage: 1
+  }
