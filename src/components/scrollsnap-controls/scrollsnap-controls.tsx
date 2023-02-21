@@ -10,9 +10,9 @@ let scrollIntoViewPonyfill: (element: Element, scrollIntoViewOptions: ScrollInto
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
-const CURRENT_INDEX_ATTR = 'data-scrollsnap-current-index';
-const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
+const CURRENT_IDX_ATTR = 'data-scrollsnap-current-index';
 const SLIDER_SELECTOR = 'ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)';
+const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
 const isTrue = { true: true }; // Helper to match "true" or true (string or boolean).
 
 @Component({
@@ -28,12 +28,12 @@ export class ScrollsnapControls {
   @Prop({ attribute: 'for' }) htmlFor: string | 'auto' = 'auto';
 
   /**
-   * Optional: CSS selector for your "Previous" button.
+   * Optional: CSS selector to bind to your "Previous" button.
    */
   @Prop() prev: string;
 
   /**
-   * Optional: CSS selector for your "Next" button.
+   * Optional: CSS selector to bind to your "Next" button.
    */
   @Prop() next: string;
 
@@ -50,7 +50,7 @@ export class ScrollsnapControls {
   /**
    * Readonly: Attribute to surface the index of the current page.
    */
-  @Prop({ mutable: true, reflect: true }) currentIndex: number = 0;
+  @Prop({ attribute: 'currentIndex', mutable: true, reflect: true }) idx: number = 0;
 
   /**
    * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
@@ -71,15 +71,15 @@ export class ScrollsnapControls {
 
   /**
    * Experimental: When set, the component will set attributes on the scrollsnap elements.
-   * By default it will setCURRENT_INDEX_ATTR"0" on the scrollsnap slider.
+   * By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider.
    * This can be helpful for CSS or as a hook for extra behaviours.
    */
   @Prop() attrs: boolean = false;
 
   /**
    * Experimental: When set, the component will set data-attributes on the elements that match this selector.
-   * This can be helpful for CSS or as a hook for extra behaviours.
-   * This attribute will be set:CURRENT_INDEX_ATTR"0".
+   * This can be helpful for CSS selectors or as a hook for extra behaviours.
+   * This attribute will be set: data-scrollsnap-current-index="0".
    */
   @Prop() notify: string | boolean;
 
@@ -103,7 +103,7 @@ export class ScrollsnapControls {
    * Defaults to find the index of the item in tthe centre of the visible area of scroll element.
    * The funcion receives an array of children in the scroll element as its first argument.
    */
-  @Prop() getCurrentIndex = getCurrentIndex;
+  @Prop() getIdx = getIdx;
 
   /**
    *
@@ -119,36 +119,39 @@ export class ScrollsnapControls {
   // Set while scrolling to a specific item. Prevents scroll event triggering itself.
   @State() isScrollingTo: Boolean;
 
-  @Watch('currentIndex')
-  onIndexChange(newCurrentIndex: number) {
+  @Watch('idx')
+  onIndexChange(newIdx: number) {
     const { slides, slider, attrs, notify, aria, scrollIntoViewOptions } = this;
-    const slide = slides[newCurrentIndex];
+    const slide = slides[newIdx];
 
     if (attrs) {
-      slider.setAttribute(CURRENT_INDEX_ATTR, String(newCurrentIndex));
+      slider.setAttribute(CURRENT_IDX_ATTR, String(newIdx));
     }
 
     if (notify || notify === '') {
       doNotify.call(this);
     }
 
-    disableButtons.call(this, newCurrentIndex);
+    disableButtons.call(this, newIdx);
 
     // Ensure current slide has aria-current="true":
     if (aria) {
-      slides.forEach((slide, i) => toggleAttribute(slide, 'aria-current', i, i === newCurrentIndex));
+      slides.forEach((slide, i) => toggleAttr(slide, 'aria-current', i, i === newIdx));
     }
 
-    // Unset isScrollingTo when scrolling finishes:
-    const debouncedScroll = debounce(() => {
+    // Handler to unset isScrollingTo and unbind itself when scrolling finishes:
+    const onAfterScroll = () => {
       this.isScrollingTo = false;
       onScrollHandler.call(this);
       slider.removeEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
-    }, 100);
+    };
 
-    // // Set isScrollingTo while scrolling to a specific item. Prevents scroll event triggering itself:
-    slider.addEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+    // Set isScrollingTo while scrolling to a specific item. Prevents code-triggered scroll from triggering itself:
     this.isScrollingTo = true;
+
+    // Unset isScrollingTo when scrolling finishes:
+    const debouncedScroll = debounce(onAfterScroll, 100);
+    slider.addEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
@@ -166,7 +169,7 @@ export class ScrollsnapControls {
 
   // Jump to corresponding slide when user clicks an indicator dot:
   onDotClick = (e: MouseEvent) => {
-    const dot = (e.target as HTMLElement).closest(`.${DOT_CLASSNAME}`);
+    const dot = (e.target as HTMLElement).closest('.' + DOT_CLASSNAME);
     if (dot) {
       const slides = dot.parentNode.children;
       const i = Array.from(slides).indexOf(dot);
@@ -174,7 +177,7 @@ export class ScrollsnapControls {
     }
   };
 
-  // Always use this method to move slides because it includes the logic to keep currentIndex within limits:
+  // Always use this method to move slides because it includes the logic to keep idx within limits:
   moveTo = (i: number) => {
     const {
       infinite,
@@ -190,15 +193,17 @@ export class ScrollsnapControls {
       }
     }
 
-    this.currentIndex = Math.max(0, Math.min(length - 1, Number(i) || 0));
+    this.idx = Math.max(0, Math.min(length - 1, Number(i) || 0));
   };
 
+  // Deliberately simple handler so we don't duplicate logic in moveTo()
   movePrev = () => {
-    this.moveTo(this.currentIndex - 1);
+    this.moveTo(this.idx - 1);
   };
 
+  // Deliberately simple handler so we don't duplicate logic in moveTo()
   moveNext = () => {
-    this.moveTo(this.currentIndex + 1);
+    this.moveTo(this.idx + 1);
   };
 
   // Delegated click handler for the Prev/Next buttons:
@@ -214,13 +219,13 @@ export class ScrollsnapControls {
   };
 
   onKey = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowRight') this.currentIndex++;
-    else if (e.key === 'ArrowLeft') this.currentIndex--;
+    if (e.key === 'ArrowRight') this.idx++;
+    else if (e.key === 'ArrowLeft') this.idx--;
   };
 
   componentWillLoad() {
     let { scrollIntoViewOptions } = this;
-    const { htmlFor, attrs, notify, currentIndex, prev, next, keys, onKey, onBtnClick, polyfill } = this;
+    const { htmlFor, attrs, notify, idx, prev, next, keys, onKey, onBtnClick, polyfill } = this;
 
     // When scrollIntoViewOptions aare supplied as raw JSON convert to object:
     if (typeof scrollIntoViewOptions === 'string' && scrollIntoViewOptions) {
@@ -228,8 +233,9 @@ export class ScrollsnapControls {
         scrollIntoViewOptions = JSON.parse(decodeURIComponent(scrollIntoViewOptions));
       } catch (err) {
         scrollIntoViewOptions = {};
+      } finally {
+        this.scrollIntoViewOptions = scrollIntoViewOptions;
       }
-      this.scrollIntoViewOptions = scrollIntoViewOptions;
     }
 
     // Locate the carousel element nearby:
@@ -239,7 +245,7 @@ export class ScrollsnapControls {
       this.slides = Array.from(slider.children) as HTMLElement[];
 
       if (attrs) {
-        slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
+        slider.setAttribute(CURRENT_IDX_ATTR, String(idx));
       }
 
       if (notify || notify === '') {
@@ -254,7 +260,7 @@ export class ScrollsnapControls {
 
     if (next || prev) {
       document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
-      disableButtons.call(this, this.currentIndex || 0);
+      disableButtons.call(this, this.idx || 0);
     }
 
     // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
@@ -280,12 +286,12 @@ export class ScrollsnapControls {
   }
 
   render() {
-    const { slides = [], dot, currentDot, currentIndex, onDotClick, onKey } = this;
+    const { slides = [], dot, currentDot, idx, onDotClick, onKey } = this;
 
     return (
       <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick} onKeyDown={onKey}>
         {slides.map((_, i) => {
-          const isActive = currentIndex === i;
+          const isActive = idx === i;
           return (
             <li key={i} class={`${DOT_CLASSNAME} ${isActive ? 'active' : ''}`} data-active={isActive}>
               {isActive ? currentDot : dot}
@@ -329,20 +335,20 @@ function onScrollHandler() {
   const { isScrollingTo, slider } = this;
   if (isScrollingTo) return;
 
-  // Detect first and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
+  // Detect first and last position to avoid odd bounce effect when getIdx wrongly chooses the middle item:
   const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
 
   if (scrollPercent === 0) {
-    this.currentIndex = 0;
+    this.idx = 0;
   } else if (scrollPercent === 100) {
-    this.currentIndex = this.slides.length - 1;
+    this.idx = this.slides.length - 1;
   } else {
-    const index = getCurrentIndex(this.slides);
-    if (index > -1) this.currentIndex = index;
+    const index = getIdx(this.slides);
+    if (index > -1) this.idx = index;
   }
 }
 
-function getCurrentIndex(slides: HTMLElement[]) {
+function getIdx(slides: HTMLElement[]) {
   const slider = slides[0]?.parentElement;
   if (!slider) return -1;
   const { top, left, width, height } = slider.getBoundingClientRect();
@@ -354,18 +360,18 @@ function getCurrentIndex(slides: HTMLElement[]) {
 
 // Helper to disable the Prev/Next buttons when start or end of carousel is reached.
 // Must be used with "this" context set, eg: disableButtons.call(this)
-function disableButtons(currentIndex: number) {
+function disableButtons(idx: number) {
   const { disable, infinite, prev, next, slides } = this;
 
   if (disable && !infinite) {
     const prevEl = prev && querySelector(prev);
     const nextEl = next && querySelector(next);
 
-    const disablePrev = currentIndex === 0 || slides.length === 0;
-    const disableNext = currentIndex === slides.length - 1 || slides.length === 0;
+    const disablePrev = idx === 0 || slides.length === 0;
+    const disableNext = idx === slides.length - 1 || slides.length === 0;
 
-    prevEl && toggleAttribute(prevEl, 'disabled', 'disabled', disablePrev);
-    nextEl && toggleAttribute(nextEl, 'disabled', 'disabled', disableNext);
+    prevEl && toggleAttr(prevEl, 'disabled', 'disabled', disablePrev);
+    nextEl && toggleAttr(nextEl, 'disabled', 'disabled', disableNext);
   }
 }
 
@@ -374,7 +380,7 @@ function closest(el: HTMLElement, selector: string) {
   let result;
   try {
     // Try it as an id selector:
-    result = el.closest(`#${selector}`);
+    result = el.closest('#' + selector);
   } catch (err) {
     // Ignore error if we made the selector invalid by prefixing with #
   } finally {
@@ -388,25 +394,25 @@ function querySelector(selector: string) {
   return document.getElementById(selector) || document.querySelector(selector);
 }
 
-// Called when currentIndex changes and if the notify attribute is set:
+// Called when idx changes and if the notify attribute is set:
 function doNotify() {
-  const { notify, currentIndex, slider, slides, prev, next } = this;
+  const { notify, idx, slider, slides, prev, next } = this;
 
   // Update data-scrollsnap-active on carousel items:
-  slides.forEach((slide, i) => toggleAttribute(slide, CURRENT_INDEX_ATTR, i, i === currentIndex));
+  slides.forEach((slide, i) => toggleAttr(slide, CURRENT_IDX_ATTR, i, i === idx));
 
-  slider.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
-  prev && querySelector(prev)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
-  next && querySelector(next)?.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex));
+  slider.setAttribute(CURRENT_IDX_ATTR, String(idx));
+  prev && querySelector(prev)?.setAttribute(CURRENT_IDX_ATTR, String(idx));
+  next && querySelector(next)?.setAttribute(CURRENT_IDX_ATTR, String(idx));
 
   // If notify prop is a selector string (ie not just true), use it to find elements to update:
   if (notify && !isTrue[String(notify)]) {
-    document.querySelectorAll(String(notify)).forEach(el => el.setAttribute(CURRENT_INDEX_ATTR, String(currentIndex)));
+    document.querySelectorAll(String(notify)).forEach(el => el.setAttribute(CURRENT_IDX_ATTR, String(idx)));
   }
 }
 
 // Helper to setAttribute or removeAttribute based on a condition:
-function toggleAttribute(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
+function toggleAttr(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
   if (condition) {
     element.setAttribute(attrName, String(attrValue));
   } else if (element.hasAttribute(attrName)) {

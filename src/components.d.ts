@@ -12,17 +12,13 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will setCURRENT_INDEX_ATTR"0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot": string | (() => void);
-        /**
-          * Readonly: Attribute to surface the index of the current page.
-         */
-        "currentIndex": number;
         /**
           * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
@@ -34,22 +30,26 @@ export namespace Components {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex": (slides: HTMLElement[]) => number;
+        "getIdx": (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor": string | 'auto';
+        /**
+          * Readonly: Attribute to surface the index of the current page.
+         */
+        "idx": number;
         "infinite": boolean;
         /**
           * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
         "keys": boolean;
         /**
-          * Optional: CSS selector for your "Next" button.
+          * Optional: CSS selector to bind to your "Next" button.
          */
         "next": string;
         /**
-          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set:CURRENT_INDEX_ATTR"0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS selectors or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
         "notify": string | boolean;
         /**
@@ -57,7 +57,7 @@ export namespace Components {
          */
         "polyfill": boolean | 'auto';
         /**
-          * Optional: CSS selector for your "Previous" button.
+          * Optional: CSS selector to bind to your "Previous" button.
          */
         "prev": string;
         /**
@@ -84,17 +84,13 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will setCURRENT_INDEX_ATTR"0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot"?: string | (() => void);
-        /**
-          * Readonly: Attribute to surface the index of the current page.
-         */
-        "currentIndex"?: number;
         /**
           * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
@@ -106,22 +102,26 @@ declare namespace LocalJSX {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex"?: (slides: HTMLElement[]) => number;
+        "getIdx"?: (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor"?: string | 'auto';
+        /**
+          * Readonly: Attribute to surface the index of the current page.
+         */
+        "idx"?: number;
         "infinite"?: boolean;
         /**
           * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
         "keys"?: boolean;
         /**
-          * Optional: CSS selector for your "Next" button.
+          * Optional: CSS selector to bind to your "Next" button.
          */
         "next"?: string;
         /**
-          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set:CURRENT_INDEX_ATTR"0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS selectors or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
         "notify"?: string | boolean;
         /**
@@ -129,7 +129,7 @@ declare namespace LocalJSX {
          */
         "polyfill"?: boolean | 'auto';
         /**
-          * Optional: CSS selector for your "Previous" button.
+          * Optional: CSS selector to bind to your "Previous" button.
          */
         "prev"?: string;
         /**
