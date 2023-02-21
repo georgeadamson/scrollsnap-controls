@@ -60,7 +60,8 @@ const Template = (args) => {
 
   export const Default = Template.bind({});
   export const WithPrevNext = Template.bind({});
-  export const WithPrevNextAutoDisable = Template.bind({});
+  export const WithInfiniteScroll = Template.bind({});
+  export const WithDisablePrevNext = Template.bind({});
   export const WithControlsHidden = Template.bind({});
   export const OneItemInView = Template.bind({});
 
@@ -85,9 +86,15 @@ const Template = (args) => {
   WithPrevNext.args = {...defaultArgs,
   };
 
-  WithPrevNextAutoDisable.args = {
+  WithDisablePrevNext.args = {
     ...defaultArgs,
     disable: true,
+    demoItemsPerPage: 3
+  }
+
+  WithInfiniteScroll.args = {
+    ...defaultArgs,
+    infinite: true,
     demoItemsPerPage: 3
   }
 
