@@ -111,7 +111,8 @@ export class ScrollsnapControls {
   // Keep track of slides internally:
   @State() slides: HTMLElement[] = [];
 
-  @State() scrollingTo: Boolean;
+  // Set while scrolling to a specific item. Prevents scroll event triggering itself.
+  @State() isScrollingTo: Boolean;
 
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex: number) {
@@ -133,14 +134,16 @@ export class ScrollsnapControls {
       slides.forEach((slide, i) => toggleAttribute(slide, 'aria-current', i, i === newCurrentIndex));
     }
 
+    // Unset isScrollingTo when scrolling finishes:
     const debouncedScroll = debounce(() => {
-      this.scrollingTo = false;
+      this.isScrollingTo = false;
       onScrollHandler.call(this);
-      slider.removeEventListener('scroll', debouncedScroll);
+      slider.removeEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
     }, 100);
 
-    slider.addEventListener('scroll', debouncedScroll);
-    this.scrollingTo = true;
+    // // Set isScrollingTo while scrolling to a specific item. Prevents scroll event triggering itself:
+    slider.addEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+    this.isScrollingTo = true;
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
@@ -304,8 +307,8 @@ function throttle(fn, delay) {
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
 // WARNING: This assumes all slides are the same width.
 function onScrollHandler() {
-  const { scrollingTo, slider } = this;
-  if (scrollingTo) return;
+  const { isScrollingTo, slider } = this;
+  if (isScrollingTo) return;
 
   // Detect first and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
   const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
