@@ -92,7 +92,11 @@ export class ScrollsnapControls {
    * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
    * Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
    */
-  @Prop({ attribute: 'scrollOptions' }) scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'nearest', inline: 'center' };
+  @Prop({ attribute: 'scrollOptions' }) scrollIntoViewOptions: ScrollIntoViewOptions = {
+    behavior: 'smooth',
+    inline: 'center',
+    block: 'nearest',
+  };
 
   /**
    * Function to return the index of the list item that is in the focal point of the scroll area.
@@ -106,6 +110,8 @@ export class ScrollsnapControls {
 
   // Keep track of slides internally:
   @State() slides: HTMLElement[] = [];
+
+  @State() scrollingTo: Boolean;
 
   @Watch('currentIndex')
   onIndexChange(newCurrentIndex: number) {
@@ -126,6 +132,15 @@ export class ScrollsnapControls {
     if (aria) {
       slides.forEach((slide, i) => toggleAttribute(slide, 'aria-current', i, i === newCurrentIndex));
     }
+
+    const debouncedScroll = debounce(() => {
+      this.scrollingTo = false;
+      onScrollHandler.call(this);
+      slider.removeEventListener('scroll', debouncedScroll);
+    }, 100);
+
+    slider.addEventListener('scroll', debouncedScroll);
+    this.scrollingTo = true;
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
@@ -210,7 +225,7 @@ export class ScrollsnapControls {
       }
 
       // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
-      this.onScroll = debounce(onScrollHandler.bind(this), 100);
+      this.onScroll = throttle(onScrollHandler.bind(this), 50);
       slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
       if (keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
@@ -272,10 +287,26 @@ function debounce(fn, ms) {
   };
 }
 
+// Very stripped down throttle function just for this purpose.
+// (Does not handle "this" or args etc because they're not needed)
+function throttle(fn, delay) {
+  let timeout = null;
+  return function () {
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        fn();
+        timeout = null;
+      }, delay);
+    }
+  };
+}
+
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
 // WARNING: This assumes all slides are the same width.
 function onScrollHandler() {
-  const { slider } = this;
+  const { scrollingTo, slider } = this;
+  if (scrollingTo) return;
+
   // Detect first and last position to avoid odd bounce effect when getCurrentIndex wrongly chooses the middle item:
   const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
 
