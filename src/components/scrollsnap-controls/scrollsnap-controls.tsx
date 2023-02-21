@@ -105,6 +105,11 @@ export class ScrollsnapControls {
    */
   @Prop() getCurrentIndex = getCurrentIndex;
 
+  /**
+   *
+   */
+  @Prop() infinite = false;
+
   // Internal use only. Stencil exposes host as a reference to the <scrollsnap-controls> element itself:
   @Element() host: HTMLElement;
 
@@ -171,7 +176,21 @@ export class ScrollsnapControls {
 
   // Always use this method to move slides because it includes the logic to keep currentIndex within limits:
   moveTo = (i: number) => {
-    this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
+    const {
+      infinite,
+      slides: { length },
+    } = this;
+
+    // When infinite scrolling is enabled, move to the opposite end if already at the limit:
+    if (infinite) {
+      if (i === -1) {
+        i = length - 1;
+      } else if (i === length) {
+        i = 0;
+      }
+    }
+
+    this.currentIndex = Math.max(0, Math.min(length - 1, Number(i) || 0));
   };
 
   movePrev = () => {
@@ -336,9 +355,9 @@ function getCurrentIndex(slides: HTMLElement[]) {
 // Helper to disable the Prev/Next buttons when start or end of carousel is reached.
 // Must be used with "this" context set, eg: disableButtons.call(this)
 function disableButtons(currentIndex: number) {
-  const { disable, prev, next, slides } = this;
+  const { disable, infinite, prev, next, slides } = this;
 
-  if (disable) {
+  if (disable && !infinite) {
     const prevEl = prev && querySelector(prev);
     const nextEl = next && querySelector(next);
 

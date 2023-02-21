@@ -14,11 +14,12 @@ export default {
 } ;
 
 const Template = (args) => {
-  let { notify, hidden, disable, dot, currentDot, scrollOptions, demoItems, demoItemsPerPage, prev, next, noPrevNext } = args;
+  let { notify, hidden, disable, infinite, dot, currentDot, scrollOptions, demoItems, demoItemsPerPage, prev, next, noPrevNext } = args;
 
   notify = notify ? 'notify' : '';
   hidden = hidden ? 'hidden' : '';
   disable = disable ? 'disable' : '';
+  infinite = infinite ? 'infinite' : '';
   dot = dot ? `dot="${dot}"` : '';
   currentDot = currentDot ? `current-dot="${currentDot}"` : '';
   scrollOptions = scrollOptions ? `scroll-options="${ encodeURIComponent(JSON.stringify(scrollOptions)) }"` : '';
@@ -48,12 +49,12 @@ const Template = (args) => {
 
     <div style="width:300px">
       <ul id="demo-slider1" class="app-slider" style="width:${demoItemsPerPage * itemWidth}px">
-        ${ slideMarkup.repeat(demoItems) }
+        ${ slideMarkup.repeat(Math.abs(demoItems)) }
       </ul>
 
       <button class="button" id="prev-btn">Prev</button>
       <button class="button" id="next-btn">Next</button>
-      <scrollsnap-controls ${notify} ${hidden} ${disable} ${dot} ${currentDot} ${scrollOptions} prev="${prev}" next="${next}"></scrollsnap-controls>
+      <scrollsnap-controls ${notify} ${hidden} ${disable} ${infinite} ${dot} ${currentDot} ${scrollOptions} prev="${prev}" next="${next}"></scrollsnap-controls>
     </div>
   `};
 
@@ -67,6 +68,7 @@ const Template = (args) => {
     notify: false,
     hidden: false,
     disable: false,
+    infinite: false,
     dot: '◯',
     currentDot: '⬤',
     prev: '#prev-btn',

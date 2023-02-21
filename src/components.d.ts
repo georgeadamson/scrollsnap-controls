@@ -39,6 +39,7 @@ export namespace Components {
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor": string | 'auto';
+        "infinite": boolean;
         /**
           * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
@@ -110,6 +111,7 @@ declare namespace LocalJSX {
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor"?: string | 'auto';
+        "infinite"?: boolean;
         /**
           * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
          */
