@@ -84,9 +84,9 @@ export class ScrollsnapControls {
   @Prop() notify: string | boolean;
 
   /**
-   * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+   * DEPRECATED. When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
    */
-  @Prop() keys: boolean = false;
+  // @Prop() keys: boolean = false;
 
   /**
    * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
@@ -218,14 +218,9 @@ export class ScrollsnapControls {
     }
   };
 
-  onKey = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowRight') this.idx++;
-    else if (e.key === 'ArrowLeft') this.idx--;
-  };
-
   componentWillLoad() {
     let { scrollIntoViewOptions } = this;
-    const { htmlFor, attrs, notify, idx, prev, next, keys, onKey, onBtnClick, polyfill } = this;
+    const { htmlFor, attrs, notify, idx, prev, next, onBtnClick, polyfill } = this;
 
     // When scrollIntoViewOptions aare supplied as raw JSON convert to object:
     if (typeof scrollIntoViewOptions === 'string' && scrollIntoViewOptions) {
@@ -255,7 +250,6 @@ export class ScrollsnapControls {
       // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
       this.onScroll = throttle(onScrollHandler.bind(this), 50);
       slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
-      if (keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
 
     if (next || prev) {
@@ -275,21 +269,20 @@ export class ScrollsnapControls {
 
   // Housekeeping:
   disconnectedCallback() {
-    const { slider, onScroll, onKey, onBtnClick } = this;
+    const { slider, onScroll, onBtnClick } = this;
 
     if (slider) {
       slider.removeEventListener('scroll', onScroll, EVENT_LISTENER_OPTIONS);
-      slider.removeEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
 
     document.removeEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
   }
 
   render() {
-    const { slides = [], dot, currentDot, idx, onDotClick, onKey } = this;
+    const { slides = [], dot, currentDot, idx, onDotClick } = this;
 
     return (
-      <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick} onKeyDown={onKey}>
+      <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick}>
         {slides.map((_, i) => {
           const isActive = idx === i;
           return (

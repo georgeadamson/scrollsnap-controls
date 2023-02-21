@@ -41,10 +41,6 @@ export namespace Components {
         "idx": number;
         "infinite": boolean;
         /**
-          * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
-         */
-        "keys": boolean;
-        /**
           * Optional: CSS selector to bind to your "Next" button.
          */
         "next": string;
@@ -112,10 +108,6 @@ declare namespace LocalJSX {
          */
         "idx"?: number;
         "infinite"?: boolean;
-        /**
-          * DEPRECATED. Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
-         */
-        "keys"?: boolean;
         /**
           * Optional: CSS selector to bind to your "Next" button.
          */
