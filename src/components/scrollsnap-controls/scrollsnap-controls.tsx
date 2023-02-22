@@ -281,6 +281,7 @@ export class ScrollsnapControls {
   render() {
     const { slides = [], dot, currentDot, idx, onDotClick } = this;
 
+    // Render the dots:
     return (
       <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick}>
         {slides.map((_, i) => {
@@ -297,6 +298,7 @@ export class ScrollsnapControls {
 }
 
 // This rudimentary version of a debounce helper is all we need here:
+// (Does not handle "this" or args etc because they're not needed)
 function debounce(fn, ms) {
   let timerId;
   return () => {
@@ -312,7 +314,7 @@ function debounce(fn, ms) {
 // (Does not handle "this" or args etc because they're not needed)
 function throttle(fn, delay) {
   let timeout = null;
-  return function () {
+  return () => {
     if (!timeout) {
       timeout = setTimeout(() => {
         fn();
@@ -325,11 +327,14 @@ function throttle(fn, delay) {
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
 // WARNING: This assumes all slides are the same width.
 function onScrollHandler() {
-  const { isScrollingTo, slider } = this;
+  const {
+    isScrollingTo,
+    slider: { scrollLeft, scrollWidth, clientWidth },
+  } = this;
   if (isScrollingTo) return;
 
   // Detect first and last position to avoid odd bounce effect when getIdx wrongly chooses the middle item:
-  const scrollPercent = (slider.scrollLeft / (slider.scrollWidth - slider.clientWidth)) * 100;
+  const scrollPercent = ~~((scrollLeft / (scrollWidth - clientWidth)) * 100);
 
   if (scrollPercent === 0) {
     this.idx = 0;
