@@ -43,7 +43,10 @@
     "@storybook/html": "^6.5.16",
     "@storybook/manager-webpack4": "^6.5.16",
     "@storybook/testing-library": "0.0.13",
-    "@types/jest": "^29.4.0",
-    "babel-loader": "^8.3.0"
+    "@types/jest": "^27.0.3",
+    "babel-loader": "^8.3.0",
+    "jest": "^27.0.3",
+    "jest-cli": "^27.4.5",
+    "puppeteer": "^19.7.2"
   }
 }

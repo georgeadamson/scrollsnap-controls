@@ -234,7 +234,7 @@ export class ScrollsnapControls {
     }
 
     // Locate the carousel element nearby:
-    const slider = (this.slider = htmlFor === 'auto' ? this.host.closest(`:has(${SLIDER_SELECTOR})`).querySelector(SLIDER_SELECTOR) : querySelector(htmlFor));
+    const slider = (this.slider = htmlFor === 'auto' ? this.host.closest(`:has(${SLIDER_SELECTOR})`)?.querySelector(SLIDER_SELECTOR) : querySelector(htmlFor));
 
     if (slider) {
       this.slides = Array.from(slider.children) as HTMLElement[];
