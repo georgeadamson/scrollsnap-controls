@@ -1,12 +1,12 @@
 {
   "name": "scrollsnap-controls",
-  "version": "0.0.10",
-  "description": "Use with a CSS Scrollsnap element to add indicator dots & handlers for Prev/Next buttons",
+  "version": "1.0.0",
+  "description": "Use with a CSS Scrollsnap element to add indicator dots & handlers for your Prev/Next buttons",
   "main": "dist/index.cjs.js",
-  "module": "dist/custom-elements/index.js",
+  "module": "./dist/index.js",
   "es2015": "dist/esm/index.mjs",
   "es2017": "dist/esm/index.mjs",
-  "types": "dist/custom-elements/index.d.ts",
+  "types": "./dist/types/components.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
   "unpkg": "dist/scrollsnap-controls/scrollsnap-controls.esm.js",
@@ -15,15 +15,38 @@
     "loader/"
   ],
   "scripts": {
+    "predev": "npm run test:version",
+    "prebuild": "npm run test:version",
     "build": "stencil build --docs",
     "start": "stencil build --dev --watch --serve",
     "test": "stencil test --spec --e2e",
     "test.watch": "stencil test --spec --e2e --watchAll",
-    "generate": "stencil generate"
+    "generate": "stencil generate",
+    "storybook": "start-storybook -p 6006",
+    "build:storybook": "build-storybook",
+    "dev": "start-storybook -p 6006 & stencil build --watch",
+    "test:version": "check-node-version --node 16"
   },
   "dependencies": {
-    "@stencil/core": "^2.0.1"
+    "@stencil/core": "3.0.0",
+    "check-node-version": "^4.2.1",
+    "smooth-scroll-into-view-if-needed": "^1.1.33"
   },
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@storybook/addon-actions": "^6.5.16",
+    "@storybook/addon-essentials": "^6.5.16",
+    "@storybook/addon-interactions": "^6.5.16",
+    "@storybook/addon-links": "^6.5.16",
+    "@storybook/builder-webpack4": "^6.5.16",
+    "@storybook/html": "^6.5.16",
+    "@storybook/manager-webpack4": "^6.5.16",
+    "@storybook/testing-library": "0.0.13",
+    "@types/jest": "^27.0.3",
+    "babel-loader": "^8.3.0",
+    "jest": "^27.0.3",
+    "jest-cli": "^27.4.5",
+    "puppeteer": "^19.7.2"
+  }
 }

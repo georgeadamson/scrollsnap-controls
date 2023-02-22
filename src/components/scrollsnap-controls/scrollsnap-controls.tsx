@@ -3,40 +3,44 @@ import { Component, Prop, State, Watch, Element, h } from '@stencil/core';
 // Carousel Page Indicators
 
 // Ponyfill for scrollIntoView will be late-loaded in unsupported browsers: (Safari, Edge, IE11)
-let scrollIntoViewPonyfill;
+interface ScrollIntoViewPonyfillOptions extends ScrollIntoViewOptions {
+  boundary: Element;
+}
+let scrollIntoViewPonyfill: (element: Element, scrollIntoViewOptions: ScrollIntoViewPonyfillOptions) => void;
 
 const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
-const EVENT_LISTENER_OPTIONS = { capture: true, passive: true }
-const isTrue = { true: true };
+const CURRENT_IDX_ATTR = 'data-scrollsnap-current-index';
+const SLIDER_SELECTOR = 'ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)';
+const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
+const isTrue = { true: true }; // Helper to match "true" or true (string or boolean).
 
 @Component({
   tag: 'scrollsnap-controls',
   styleUrl: 'scrollsnap-controls.css',
   shadow: false,
-  scoped: false
+  scoped: false,
 })
 export class ScrollsnapControls {
-
   /**
    * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
    */
-  @Prop({ attribute: 'for' }) htmlFor!: string | 'auto';
+  @Prop({ attribute: 'for' }) htmlFor: string | 'auto' = 'auto';
 
   /**
-   * Optional: id or CSS selector for your "Previous" button.
+   * Optional: CSS selector to bind to your "Previous" button.
    */
   @Prop() prev: string;
 
   /**
-   * Optional: id or CSS selector for your "Next" button.
+   * Optional: CSS selector to bind to your "Next" button.
    */
   @Prop() next: string;
 
   /**
    * Optional: Specify a character or markup for an indicator dot.
    */
-  @Prop() dot: string | (() => void) ='◯';
+  @Prop() dot: string | (() => void) = '◯';
 
   /**
    * Optional: Specify a character or markup for the "current" page indicator dot.
@@ -46,7 +50,7 @@ export class ScrollsnapControls {
   /**
    * Readonly: Attribute to surface the index of the current page.
    */
-  @Prop({ mutable: true, reflect: true }) currentIndex: number = 0;
+  @Prop({ attribute: 'currentIndex', mutable: true, reflect: true }) idx: number = 0;
 
   /**
    * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
@@ -66,274 +70,317 @@ export class ScrollsnapControls {
   @Prop() aria: boolean = false;
 
   /**
-   * Experimental: When set, the component will attributes on the scrollsnap elements.
+   * Experimental: When set, the component will set attributes on the scrollsnap elements.
    * By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider.
    * This can be helpful for CSS or as a hook for extra behaviours.
    */
-   @Prop() attrs: boolean = false;
+  @Prop() attrs: boolean = false;
 
   /**
-   * Experimental: When set, the component will set attributes on the elements that match this selector.
-   * This can be helpful for CSS or as a hook for extra behaviours.
+   * Experimental: When set, the component will set data-attributes on the elements that match this selector.
+   * This can be helpful for CSS selectors or as a hook for extra behaviours.
    * This attribute will be set: data-scrollsnap-current-index="0".
    */
-   @Prop() notify: string = '';
+  @Prop() notify: string | boolean;
 
   /**
-   * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+   * DEPRECATED. When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
    */
-  @Prop() keys: boolean = false;
-
+  // @Prop() keys: boolean = false;
 
   /**
    * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+   * Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
    */
-  @Prop() scrollIntoViewOptions: ScrollIntoViewOptions = { behavior: 'smooth', block: 'nearest', inline: 'center' };
+  @Prop({ attribute: 'scrollOptions' }) scrollIntoViewOptions: ScrollIntoViewOptions = {
+    behavior: 'smooth',
+    inline: 'center',
+    block: 'nearest',
+  };
 
   /**
    * Function to return the index of the list item that is in the focal point of the scroll area.
    * Defaults to find the index of the item in tthe centre of the visible area of scroll element.
    * The funcion receives an array of children in the scroll element as its first argument.
    */
-  @Prop() getCurrentIndex = getCurrentIndex;
+  @Prop() getIdx = getIdx;
 
-  //
+  /**
+   *
+   */
+  @Prop() infinite = false;
+
+  // Internal use only. Stencil exposes host as a reference to the <scrollsnap-controls> element itself:
   @Element() host: HTMLElement;
 
   // Keep track of slides internally:
-  @State() slides: Element[] = [];
+  @State() slides: HTMLElement[] = [];
 
-  @Watch('currentIndex')
-  onIndexChange(newCurrentIndex: number) {
-    const { slides, slider, attrs, notify, aria, polyfill, scrollIntoViewOptions } = this;
+  // Set while scrolling to a specific item. Prevents scroll event triggering itself.
+  @State() isScrollingTo: Boolean;
+
+  @Watch('idx')
+  onIndexChange(newIdx: number) {
+    const { slides, slider, attrs, notify, aria, scrollIntoViewOptions } = this;
+    const slide = slides[newIdx];
+
+    if (attrs) {
+      slider.setAttribute(CURRENT_IDX_ATTR, String(newIdx));
+    }
+
+    if (notify || notify === '') {
+      doNotify.call(this);
+    }
+
+    disableButtons.call(this, newIdx);
+
+    // Ensure current slide has aria-current="true":
+    if (aria) {
+      slides.forEach((slide, i) => toggleAttr(slide, 'aria-current', i, i === newIdx));
+    }
+
+    // Handler to unset isScrollingTo and unbind itself when scrolling finishes:
+    const onAfterScroll = () => {
+      this.isScrollingTo = false;
+      onScrollHandler.call(this);
+      slider.removeEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+    };
+
+    // Set isScrollingTo while scrolling to a specific item. Prevents code-triggered scroll from triggering itself:
+    this.isScrollingTo = true;
+
+    // Unset isScrollingTo when scrolling finishes:
+    const debouncedScroll = debounce(onAfterScroll, 100);
+    slider.addEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+
+    // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
+    if (scrollIntoViewPonyfill) {
+      // https://scroll-into-view-if-needed.netlify.app/
+      scrollIntoViewPonyfill(slide, { ...scrollIntoViewOptions, boundary: this.slider });
+    } else {
+      slide.scrollIntoView(scrollIntoViewOptions);
+    }
+  }
+
+  private slider: HTMLElement;
+
+  // During init this will be assigned a debounced handler for user scrolling:
+  onScroll: (e: WheelEvent) => void = null;
+
+  // Jump to corresponding slide when user clicks an indicator dot:
+  onDotClick = (e: MouseEvent) => {
+    const dot = (e.target as HTMLElement).closest('.' + DOT_CLASSNAME);
+    if (dot) {
+      const slides = dot.parentNode.children;
+      const i = Array.from(slides).indexOf(dot);
+      this.moveTo(i);
+    }
+  };
+
+  // Always use this method to move slides because it includes the logic to keep idx within limits:
+  moveTo = (i: number) => {
+    const {
+      infinite,
+      slides: { length },
+    } = this;
+
+    // When infinite scrolling is enabled, move to the opposite end if already at the limit:
+    if (infinite) {
+      if (i === -1) {
+        i = length - 1;
+      } else if (i === length) {
+        i = 0;
+      }
+    }
+
+    this.idx = Math.max(0, Math.min(length - 1, Number(i) || 0));
+  };
+
+  // Deliberately simple handler so we don't duplicate logic in moveTo()
+  movePrev = () => {
+    this.moveTo(this.idx - 1);
+  };
+
+  // Deliberately simple handler so we don't duplicate logic in moveTo()
+  moveNext = () => {
+    this.moveTo(this.idx + 1);
+  };
+
+  // Delegated click handler for the Prev/Next buttons:
+  onBtnClick = (e: MouseEvent) => {
+    const { prev, next, moveNext, movePrev } = this;
+    const target = e.target as HTMLElement;
+
+    if (next && closest(target, next)) {
+      moveNext();
+    } else if (prev && closest(target, prev)) {
+      movePrev();
+    }
+  };
+
+  componentWillLoad() {
+    let { scrollIntoViewOptions } = this;
+    const { htmlFor, attrs, notify, idx, prev, next, onBtnClick, polyfill } = this;
+
+    // When scrollIntoViewOptions aare supplied as raw JSON convert to object:
+    if (typeof scrollIntoViewOptions === 'string' && scrollIntoViewOptions) {
+      try {
+        scrollIntoViewOptions = JSON.parse(decodeURIComponent(scrollIntoViewOptions));
+      } catch (err) {
+        scrollIntoViewOptions = {};
+      } finally {
+        this.scrollIntoViewOptions = scrollIntoViewOptions;
+      }
+    }
+
+    // Locate the carousel element nearby:
+    const slider = (this.slider = htmlFor === 'auto' ? this.host.closest(`:has(${SLIDER_SELECTOR})`)?.querySelector(SLIDER_SELECTOR) : querySelector(htmlFor));
+
+    if (slider) {
+      this.slides = Array.from(slider.children) as HTMLElement[];
+
+      if (attrs) {
+        slider.setAttribute(CURRENT_IDX_ATTR, String(idx));
+      }
+
+      if (notify || notify === '') {
+        doNotify.call(this);
+      }
+
+      // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
+      this.onScroll = throttle(onScrollHandler.bind(this), 50);
+      slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
+    }
+
+    if (next || prev) {
+      document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
+      disableButtons.call(this, this.idx || 0);
+    }
 
     // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
     if (polyfill && !scrollIntoViewPonyfill) {
       const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
 
       if (isTrue[String(polyfill)] || (polyfill === 'auto' && !isSmoothScrollSupported)) {
-
-        // @ts-ignore
-        import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
-          .then(module => scrollIntoViewPonyfill = module.default);
+        import('smooth-scroll-into-view-if-needed').then(module => (scrollIntoViewPonyfill = module.default));
       }
     }
-
-    const slide = slides[newCurrentIndex];
-
-    if (attrs) {
-      slider.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
-    }
-
-    if (notify) {
-      this.prev && querySelector(this.prev)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
-      this.next && querySelector(this.next)?.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex));
-
-      // If notify prop might be a selector (ie not just true), use it find elements to update:
-      if (!{ true: true }[notify] ) {
-        document.querySelectorAll(notify).forEach(
-          el => el.setAttribute('data-scrollsnap-current-index', String(newCurrentIndex))
-        )
-      }
-    }
-
-    disableButtons.call(this, newCurrentIndex);
-
-    // Ensure current slide has aria-current="true":
-    if (aria) {
-      slides.forEach((slide,i) => {
-        if (i === newCurrentIndex) {
-          slide.setAttribute('aria-current', 'true');
-        } else if (slide.hasAttribute('aria-current')) {
-          slide.removeAttribute('aria-current');
-        }
-      })
-    }
-
-    // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
-    if (scrollIntoViewPonyfill) {
-      // https://scroll-into-view-if-needed.netlify.app/
-      scrollIntoViewPonyfill(slide, {...scrollIntoViewOptions, boundary: this.slider });
-    } else {
-      slide.scrollIntoView(scrollIntoViewOptions);
-    }
-  }
-
-  private slider: Element;
-
-  init() {
-    const { htmlFor , attrs, notify, currentIndex } = this;
-    const slider = this.slider = htmlFor === 'auto'
-      ? this.host.parentElement.querySelector('ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)')
-      : querySelector(htmlFor);
-
-    if (slider) {
-      this.slides = Array.from(slider.children);
-
-      if (attrs) {
-        slider.setAttribute('data-scrollsnap-current-index', String(currentIndex));
-      }
-
-      if (notify) {
-        document.querySelectorAll(notify).forEach(
-          el => el.setAttribute('data-scrollsnap-current-index', String(currentIndex))
-        )
-      }
-    }
-
-
-  }
-
-  // Will be handler to react to user scrolling:
-  onScroll: (e: WheelEvent) => void = null;
-
-  // Jump to corresponding slide when user clicks an indicator dot:
-  onDotClick = (e: MouseEvent) => {
-    const dot = (e.target as HTMLElement).closest(`.${DOT_CLASSNAME}`);
-    if (dot) {
-      const i = Array.from(dot.parentNode.children).indexOf(dot);
-      this.moveTo(i);
-    }
-  }
-
-  // Always use this method to move slides because it includes the logic to keep currentIndex within limits:
-  moveTo = (i: number) => {
-    this.currentIndex = Math.max(0, Math.min(this.slides.length - 1, Number(i) || 0));
-  }
-
-  movePrev = () => {
-    this.moveTo(this.currentIndex - 1);
-  }
-
-  moveNext = () => {
-    this.moveTo(this.currentIndex + 1);
-  }
-
-  // Delegated click handler for the Prev/Next buttons:
-  onBtnClick = (e: MouseEvent) => {
-    const { prev, next } = this;
-    const target = e.target as HTMLElement;
-
-    if (next && closest(target, next)) {
-      this.moveNext();
-    } else if(prev && closest(target, prev)) {
-      this.movePrev();
-    }
-  }
-
-  onKey = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowRight') this.currentIndex++;
-    else if (e.key === 'ArrowLeft') this.currentIndex--;
-  }
-
-  componentWillLoad() {
-    this.init();
-
-    const { slider, prev, next, keys, onKey, onBtnClick } = this;
-
-    if (slider) {
-      // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
-      this.onScroll = debounce(onScroll.bind(this), 100);
-      slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
-      if (keys) slider.addEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
-    }
-
-    if (next || prev) {
-      document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
-      disableButtons.call(this, this.currentIndex || 0);
-    }
-
-    // // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
-    // if (!isSmoothScrollSupported && !scrollIntoViewPonyfill && this.polyfill) {
-    //   // @ts-ignore
-    //   import('https://cdn.skypack.dev/smooth-scroll-into-view-if-needed?min')
-    //     .then(module => scrollIntoViewPonyfill = module.default);
-    // }
   }
 
   // Housekeeping:
   disconnectedCallback() {
-    const { slider, onScroll, onKey, onBtnClick } = this;
+    const { slider, onScroll, onBtnClick } = this;
 
     if (slider) {
       slider.removeEventListener('scroll', onScroll, EVENT_LISTENER_OPTIONS);
-      slider.removeEventListener('keydown', onKey, EVENT_LISTENER_OPTIONS);
     }
 
     document.removeEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
   }
 
   render() {
-    const { slides = [], dot, currentDot, currentIndex, onDotClick, onKey} = this;
+    const { slides = [], dot, currentDot, idx, onDotClick } = this;
 
+    // Render the dots:
     return (
-      <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick} onKeyDown={onKey}>
-        {slides.map((_,i) => (
-          <li class={`${DOT_CLASSNAME} ${currentIndex === i ? 'active' : ''}`}>
-            {currentIndex === i ? currentDot : dot}
-          </li>)
-        )}
+      <ol class={DOTS_CLASSNAME} aria-hidden="true" onClick={onDotClick}>
+        {slides.map((_, i) => {
+          const isActive = idx === i;
+          return (
+            <li key={i} class={`${DOT_CLASSNAME} ${isActive ? 'active' : ''}`} data-active={isActive}>
+              {isActive ? currentDot : dot}
+            </li>
+          );
+        })}
       </ol>
     );
   }
-
 }
 
 // This rudimentary version of a debounce helper is all we need here:
+// (Does not handle "this" or args etc because they're not needed)
 function debounce(fn, ms) {
-	let timerId
-	return () => {
-		clearTimeout(timerId)
-		timerId = setTimeout(() => {
-			timerId = null;
-      fn()
-		}, ms);
-	}
+  let timerId;
+  return () => {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => {
+      timerId = null;
+      fn();
+    }, ms);
+  };
+}
+
+// Very stripped down throttle function just for this purpose.
+// (Does not handle "this" or args etc because they're not needed)
+function throttle(fn, delay) {
+  let timeout = null;
+  return () => {
+    if (!timeout) {
+      timeout = setTimeout(() => {
+        fn();
+        timeout = null;
+      }, delay);
+    }
+  };
 }
 
 // Handler to react when user scrolls. Must be used after onScroll.bind(this)
 // WARNING: This assumes all slides are the same width.
-// Could make the position detection smarter...?
-function onScroll() {
-  const index = getCurrentIndex(this.slides);
-  if (index > -1) this.currentIndex = index;
+function onScrollHandler() {
+  const {
+    isScrollingTo,
+    slider: { scrollLeft, scrollWidth, clientWidth },
+  } = this;
+  if (isScrollingTo) return;
+
+  // Detect first and last position to avoid odd bounce effect when getIdx wrongly chooses the middle item:
+  const scrollPercent = ~~((scrollLeft / (scrollWidth - clientWidth)) * 100);
+
+  if (scrollPercent === 0) {
+    this.idx = 0;
+  } else if (scrollPercent === 100) {
+    this.idx = this.slides.length - 1;
+  } else {
+    const index = getIdx(this.slides);
+    if (index > -1) this.idx = index;
+  }
 }
 
-function getCurrentIndex(items: HTMLElement[]) {
-  const { top, left, width, height } = items[0]?.parentElement.getBoundingClientRect() || {};
-  const middleOfContainer =  {
-    x: left + width / 2,
-    y: top + height / 2,
-  }
-  const target = document.elementFromPoint(middleOfContainer.x, middleOfContainer.y);
-  const item = items.find(slide => slide.contains(target));
-
-  return items.indexOf(item);
+function getIdx(slides: HTMLElement[]) {
+  const slider = slides[0]?.parentElement;
+  if (!slider) return -1;
+  const { top, left, width, height } = slider.getBoundingClientRect();
+  const middleOfBoundaryX = left + width / 2;
+  const middleOfBoundaryY = top + height / 2;
+  const target = document.elementFromPoint(middleOfBoundaryX, middleOfBoundaryY);
+  return slides.findIndex(slide => slide.contains(target));
 }
 
 // Helper to disable the Prev/Next buttons when start or end of carousel is reached.
 // Must be used with "this" context set, eg: disableButtons.call(this)
-function disableButtons(currentIndex: number) {
-  if (this.disable) {
-    const prevEl = this.prev && querySelector(this.prev);
-    const nextEl = this.next && querySelector(this.next);
+function disableButtons(idx: number) {
+  const { disable, infinite, prev, next, slides } = this;
 
-    const disablePrev = currentIndex === 0 || this.slides.length === 0;
-    const disableNext = currentIndex === this.slides.length - 1 || this.slides.length === 0;
+  if (disable && !infinite) {
+    const prevEl = prev && querySelector(prev);
+    const nextEl = next && querySelector(next);
 
-    prevEl && (disablePrev ? prevEl.setAttribute('disabled', 'disabled') : prevEl.removeAttribute('disabled'));
-    nextEl && (disableNext ? nextEl.setAttribute('disabled', 'disabled') : nextEl.removeAttribute('disabled'));
+    const disablePrev = idx === 0 || slides.length === 0;
+    const disableNext = idx === slides.length - 1 || slides.length === 0;
+
+    prevEl && toggleAttr(prevEl, 'disabled', 'disabled', disablePrev);
+    nextEl && toggleAttr(nextEl, 'disabled', 'disabled', disableNext);
   }
 }
 
-// Same as slider.closest() but first searches by id in case an id has been supplied:
+// Same as element.closest() but first searches by id in case an id has been supplied:
 function closest(el: HTMLElement, selector: string) {
   let result;
   try {
-    // Try it as an id selector: (Ignore error if we've made the selector invalid by prefixing with #)
-    result = el.closest(`#${selector}`);
-  } catch(err) {
-    // Ignore error
+    // Try it as an id selector:
+    result = el.closest('#' + selector);
+  } catch (err) {
+    // Ignore error if we made the selector invalid by prefixing with #
   } finally {
     // Return slider if found by id, or try the selector as-is, and surface any error as nornal to help debug:
     return result || el.closest(selector);
@@ -343,4 +390,30 @@ function closest(el: HTMLElement, selector: string) {
 // Same as document.querySelector() but first searches by id in case an id has been supplied:
 function querySelector(selector: string) {
   return document.getElementById(selector) || document.querySelector(selector);
+}
+
+// Called when idx changes and if the notify attribute is set:
+function doNotify() {
+  const { notify, idx, slider, slides, prev, next } = this;
+
+  // Update data-scrollsnap-active on carousel items:
+  slides.forEach((slide, i) => toggleAttr(slide, CURRENT_IDX_ATTR, i, i === idx));
+
+  slider.setAttribute(CURRENT_IDX_ATTR, String(idx));
+  prev && querySelector(prev)?.setAttribute(CURRENT_IDX_ATTR, String(idx));
+  next && querySelector(next)?.setAttribute(CURRENT_IDX_ATTR, String(idx));
+
+  // If notify prop is a selector string (ie not just true), use it to find elements to update:
+  if (notify && !isTrue[String(notify)]) {
+    document.querySelectorAll(String(notify)).forEach(el => el.setAttribute(CURRENT_IDX_ATTR, String(idx)));
+  }
+}
+
+// Helper to setAttribute or removeAttribute based on a condition:
+function toggleAttr(element: HTMLElement, attrName: string, attrValue, condition = typeof attrValue !== 'undefined') {
+  if (condition) {
+    element.setAttribute(attrName, String(attrValue));
+  } else if (element.hasAttribute(attrName)) {
+    element.removeAttribute(attrName);
+  }
 }

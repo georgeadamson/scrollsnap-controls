@@ -12,17 +12,13 @@ export namespace Components {
          */
         "aria": boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs": boolean;
         /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot": string | (() => void);
-        /**
-          * Readonly: Attribute to surface the index of the current page.
-         */
-        "currentIndex": number;
         /**
           * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
@@ -34,33 +30,34 @@ export namespace Components {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex": (items: HTMLElement[]) => number;
+        "getIdx": (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
         "htmlFor": string | 'auto';
         /**
-          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+          * Readonly: Attribute to surface the index of the current page.
          */
-        "keys": boolean;
+        "idx": number;
+        "infinite": boolean;
         /**
-          * Optional: id or CSS selector for your "Next" button.
+          * Optional: CSS selector to bind to your "Next" button.
          */
         "next": string;
         /**
-          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS selectors or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
-        "notify": string;
+        "notify": string | boolean;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
         "polyfill": boolean | 'auto';
         /**
-          * Optional: id or CSS selector for your "Previous" button.
+          * Optional: CSS selector to bind to your "Previous" button.
          */
         "prev": string;
         /**
-          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
          */
         "scrollIntoViewOptions": ScrollIntoViewOptions;
     }
@@ -83,17 +80,13 @@ declare namespace LocalJSX {
          */
         "aria"?: boolean;
         /**
-          * Experimental: When set, the component will attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
+          * Experimental: When set, the component will set attributes on the scrollsnap elements. By default it will set data-scrollsnap-current-index="0" on the scrollsnap slider. This can be helpful for CSS or as a hook for extra behaviours.
          */
         "attrs"?: boolean;
         /**
           * Optional: Specify a character or markup for the "current" page indicator dot.
          */
         "currentDot"?: string | (() => void);
-        /**
-          * Readonly: Attribute to surface the index of the current page.
-         */
-        "currentIndex"?: number;
         /**
           * Experimental: When set, the component will toggle disabled attributes on the Prev/Next buttons. (Since v0.0.7)
          */
@@ -105,33 +98,34 @@ declare namespace LocalJSX {
         /**
           * Function to return the index of the list item that is in the focal point of the scroll area. Defaults to find the index of the item in tthe centre of the visible area of scroll element. The funcion receives an array of children in the scroll element as its first argument.
          */
-        "getCurrentIndex"?: (items: HTMLElement[]) => number;
+        "getIdx"?: (slides: HTMLElement[]) => number;
         /**
           * Required: id or CSS selector of your scrollsnap slider, so this component can bind to it.
          */
-        "htmlFor": string | 'auto';
+        "htmlFor"?: string | 'auto';
         /**
-          * Experimental: When set, the component will attempt better paging of the scrollsnap using the ← → arrow keys.
+          * Readonly: Attribute to surface the index of the current page.
          */
-        "keys"?: boolean;
+        "idx"?: number;
+        "infinite"?: boolean;
         /**
-          * Optional: id or CSS selector for your "Next" button.
+          * Optional: CSS selector to bind to your "Next" button.
          */
         "next"?: string;
         /**
-          * Experimental: When set, the component will set attributes on the elements that match this selector. This can be helpful for CSS or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
+          * Experimental: When set, the component will set data-attributes on the elements that match this selector. This can be helpful for CSS selectors or as a hook for extra behaviours. This attribute will be set: data-scrollsnap-current-index="0".
          */
-        "notify"?: string;
+        "notify"?: string | boolean;
         /**
           * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
          */
         "polyfill"?: boolean | 'auto';
         /**
-          * Optional: id or CSS selector for your "Previous" button.
+          * Optional: CSS selector to bind to your "Previous" button.
          */
         "prev"?: string;
         /**
-          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+          * An object with options for https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView Note: Up to version 0.0.10 this prop was named scrollIntoViewOptions.
          */
         "scrollIntoViewOptions"?: ScrollIntoViewOptions;
     }
