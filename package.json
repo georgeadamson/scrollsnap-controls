@@ -1,6 +1,6 @@
 {
   "name": "scrollsnap-controls",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Use with a CSS Scrollsnap element to add indicator dots & handlers for your Prev/Next buttons",
   "main": "dist/index.cjs.js",
   "module": "./dist/index.js",
@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@stencil/core": "3.0.0",
-    "check-node-version": "^4.2.1",
     "smooth-scroll-into-view-if-needed": "^1.1.33"
   },
   "license": "MIT",
@@ -45,6 +44,7 @@
     "@storybook/testing-library": "0.0.13",
     "@types/jest": "^27.0.3",
     "babel-loader": "^8.3.0",
+    "check-node-version": "^4.2.1",
     "jest": "^27.0.3",
     "jest-cli": "^27.4.5",
     "puppeteer": "^19.7.2"
