@@ -211,6 +211,11 @@ export class ScrollsnapControls {
     const { prev, next, moveNext, movePrev } = this;
     const target = e.target as HTMLElement;
 
+    // Edge case: If Prev/Next button is inside a link then stop the click bubbling up to it:
+    if (target.parentElement.closest('A')) {
+      e.stopPropagation();
+    }
+
     if (next && closest(target, next)) {
       moveNext();
     } else if (prev && closest(target, prev)) {
