@@ -12,7 +12,8 @@ const DOT_CLASSNAME = 'scrollsnap-control-dot';
 const DOTS_CLASSNAME = 'scrollsnap-control-dots';
 const CURRENT_IDX_ATTR = 'data-scrollsnap-current-index';
 const SLIDER_SELECTOR = 'ul:not(scrollsnap-controls *),ol:not(scrollsnap-controls *)';
-const EVENT_LISTENER_OPTIONS = { capture: true, passive: true };
+const CLICK_EVENT_OPTIONS = { capture: true }; // Not passive because we may need to call preventDefault()
+const SCROLL_EVENT_OPTIONS = { capture: true, passive: true }; // Can be passive to improve scroll performance
 const isTrue = { true: true }; // Helper to match "true" or true (string or boolean).
 
 @Component({
@@ -143,7 +144,7 @@ export class ScrollsnapControls {
     const onAfterScroll = () => {
       this.isScrollingTo = false;
       onScrollHandler.call(this);
-      slider.removeEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+      slider.removeEventListener('scroll', debouncedScroll, SCROLL_EVENT_OPTIONS);
     };
 
     // Set isScrollingTo while scrolling to a specific item. Prevents code-triggered scroll from triggering itself:
@@ -151,7 +152,7 @@ export class ScrollsnapControls {
 
     // Unset isScrollingTo when scrolling finishes:
     const debouncedScroll = debounce(onAfterScroll, 100);
-    slider.addEventListener('scroll', debouncedScroll, EVENT_LISTENER_OPTIONS);
+    slider.addEventListener('scroll', debouncedScroll, SCROLL_EVENT_OPTIONS);
 
     // Scroll the slide into view (using polyfill in browsers that do not support smoothscroll)
     if (scrollIntoViewPonyfill) {
@@ -255,11 +256,11 @@ export class ScrollsnapControls {
 
       // Bind our scroll handler to this component instance and keep a reference so we can remove it later:
       this.onScroll = throttle(onScrollHandler.bind(this), 50);
-      slider.addEventListener('scroll', this.onScroll, EVENT_LISTENER_OPTIONS);
+      slider.addEventListener('scroll', this.onScroll, SCROLL_EVENT_OPTIONS);
     }
 
     if (next || prev) {
-      document.addEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
+      document.addEventListener('click', onBtnClick, CLICK_EVENT_OPTIONS);
       disableButtons.call(this, this.idx || 0);
     }
 
@@ -278,10 +279,10 @@ export class ScrollsnapControls {
     const { slider, onScroll, onBtnClick } = this;
 
     if (slider) {
-      slider.removeEventListener('scroll', onScroll, EVENT_LISTENER_OPTIONS);
+      slider.removeEventListener('scroll', onScroll, SCROLL_EVENT_OPTIONS);
     }
 
-    document.removeEventListener('click', onBtnClick, EVENT_LISTENER_OPTIONS);
+    document.removeEventListener('click', onBtnClick, CLICK_EVENT_OPTIONS);
   }
 
   render() {
