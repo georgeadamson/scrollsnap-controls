@@ -1,6 +1,8 @@
 import { Component, Prop, State, Watch, Element, h } from '@stencil/core';
 
-// Carousel Page Indicators
+// Prev/Next controls for a CSS scroll area. Plus "trainstops".
+
+// To reference this code during development: <script type="module" src="/build/scrollsnap-controls.esm.js"></script>
 
 // Ponyfill for scrollIntoView will be late-loaded in unsupported browsers: (Safari, Edge, IE11)
 interface ScrollIntoViewPonyfillOptions extends ScrollIntoViewOptions {
@@ -164,6 +166,7 @@ export class ScrollsnapControls {
   }
 
   private slider: HTMLElement;
+  private observer: IntersectionObserver;
 
   // During init this will be assigned a debounced handler for user scrolling:
   onScroll: (e: WheelEvent) => void = null;
@@ -175,6 +178,18 @@ export class ScrollsnapControls {
       const slides = dot.parentNode.children;
       const i = Array.from(slides).indexOf(dot);
       this.moveTo(i);
+    }
+  };
+
+  // Bind delegated click handlers while the slider is in view:
+  onInView = ([entry]: IntersectionObserverEntry[]) => {
+    if (entry && (this.next || this.prev)) {
+      if (entry.isIntersecting) {
+        document.addEventListener('click', this.onBtnClick, CLICK_EVENT_OPTIONS);
+        disableButtons.call(this, this.idx || 0);
+      } else {
+        document.removeEventListener('click', this.onBtnClick, CLICK_EVENT_OPTIONS);
+      }
     }
   };
 
@@ -208,28 +223,32 @@ export class ScrollsnapControls {
   };
 
   // Delegated click handler for the Prev/Next buttons:
+  // Important: Only do something after confirming the target is Prev or Next.
   onBtnClick = (e: MouseEvent) => {
-    const { prev, next, moveNext, movePrev } = this;
     const target = e.target as HTMLElement;
+    const { prev, next, moveNext, movePrev } = this;
+
+    const isNext = next && closest(target, next);
+    const isPrev = !isNext && prev && closest(target, prev);
 
     // Edge case: If Prev/Next button is inside a link then stop the click bubbling up to it:
-    if (target.parentElement?.closest('a,button')) {
+    if ((isNext || isPrev) && target.parentElement?.closest('a,button')) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    if (next && closest(target, next)) {
+    if (isNext) {
       moveNext();
-    } else if (prev && closest(target, prev)) {
+    } else if (isPrev) {
       movePrev();
     }
   };
 
   componentWillLoad() {
     let { scrollIntoViewOptions } = this;
-    const { htmlFor, attrs, notify, idx, prev, next, onBtnClick, polyfill } = this;
+    const { htmlFor, attrs, notify, idx, polyfill } = this;
 
-    // When scrollIntoViewOptions aare supplied as raw JSON convert to object:
+    // When scrollIntoViewOptions are supplied as raw JSON convert to object:
     if (typeof scrollIntoViewOptions === 'string' && scrollIntoViewOptions) {
       try {
         scrollIntoViewOptions = JSON.parse(decodeURIComponent(scrollIntoViewOptions));
@@ -259,11 +278,6 @@ export class ScrollsnapControls {
       slider.addEventListener('scroll', this.onScroll, SCROLL_EVENT_OPTIONS);
     }
 
-    if (next || prev) {
-      document.addEventListener('click', onBtnClick, CLICK_EVENT_OPTIONS);
-      disableButtons.call(this, this.idx || 0);
-    }
-
     // Late-load ponyfill for smooth-scrolling if not supported: (Safari, Edge, IE11)
     if (polyfill && !scrollIntoViewPonyfill) {
       const isSmoothScrollSupported = 'scrollBehavior' in document.documentElement.style;
@@ -274,9 +288,21 @@ export class ScrollsnapControls {
     }
   }
 
+  componentDidLoad() {
+    this.slider && (this.observer = new IntersectionObserver(this.onInView)).observe(this.slider);
+    // The code above is a condensed equivalent of:
+    // if (this.slider) {
+    //   this.observer = new IntersectionObserver(this.onInView);
+    //   this.observer.observe(this.slider);
+    // }
+  }
+
   // Housekeeping:
   disconnectedCallback() {
-    const { slider, onScroll, onBtnClick } = this;
+    const { slider, onScroll, onBtnClick, observer } = this;
+
+    // Tidy up IntersectionObserver:
+    observer.disconnect();
 
     if (slider) {
       slider.removeEventListener('scroll', onScroll, SCROLL_EVENT_OPTIONS);
