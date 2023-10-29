@@ -36,7 +36,7 @@ export namespace Components {
          */
         "htmlFor": string | 'auto';
         /**
-          * Readonly: Attribute to surface the index of the current page.
+          * Read-write: Attribute to surface the index of the current page.
          */
         "idx": number;
         "infinite": boolean;
@@ -104,7 +104,7 @@ declare namespace LocalJSX {
          */
         "htmlFor"?: string | 'auto';
         /**
-          * Readonly: Attribute to surface the index of the current page.
+          * Read-write: Attribute to surface the index of the current page.
          */
         "idx"?: number;
         "infinite"?: boolean;

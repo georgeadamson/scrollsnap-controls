@@ -8,7 +8,7 @@ describe('scrollsnap-controls ', () => {
       html: `<scrollsnap-controls></scrollsnap-controls>`,
     });
     expect(page.root).toEqualHtml(`
-      <scrollsnap-controls currentindex="0">
+      <scrollsnap-controls current-index="0">
         <ol aria-hidden="true" class="scrollsnap-control-dots"></ol>
       </scrollsnap-controls >
     `);

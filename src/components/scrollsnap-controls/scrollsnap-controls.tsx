@@ -51,9 +51,9 @@ export class ScrollsnapControls {
   @Prop() currentDot: string | (() => void) = '⬤';
 
   /**
-   * Readonly: Attribute to surface the index of the current page.
+   * Read-write: Attribute to surface the index of the current page.
    */
-  @Prop({ attribute: 'currentIndex', mutable: true, reflect: true }) idx: number = 0;
+  @Prop({ attribute: 'current-index', mutable: true, reflect: true }) idx: number = 0;
 
   /**
    * Optional: When set, the component will fetch polyfills for browsers that do not support smoothscroll natively. (Eg Safari, Edge, IE11)
